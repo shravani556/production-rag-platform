@@ -1,0 +1,23 @@
+# Docker images
+*.tar
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Environment
+.env
+
+# ChromaDB
+data/chroma/
+
+# Ollama models
+data/ollama/
+
+# Logs
+*.log
+
+# VS Code
+.vscode/

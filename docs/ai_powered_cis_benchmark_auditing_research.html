@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI-Powered CIS Benchmark Auditing Framework</title>
+<style>
+:root {
+  --ink: #1b1b24;
+  --muted: #5d6470;
+  --line: #d9dbe3;
+  --bg: #f6f7fb;
+  --card: #ffffff;
+  --accent: #5b21b6;
+  --accent-2: #7c3aed;
+  --good: #0f7b4f;
+  --warn: #ad6500;
+  --bad: #b42318;
+  --blue: #075985;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+  line-height: 1.48;
+}
+header {
+  color: #fff;
+  background: linear-gradient(135deg, #220046 0%, #4c1d95 55%, #7c3aed 100%);
+  padding: 48px 56px;
+}
+header h1 { margin: 0 0 8px; font-size: 38px; letter-spacing: -0.03em; }
+header p { margin: 6px 0 0; max-width: 1050px; color: #eee7ff; font-size: 17px; }
+main { max-width: 1280px; margin: -28px auto 72px; padding: 0 28px; }
+section, .card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 10px 28px rgba(30, 27, 75, 0.06);
+  margin: 22px 0;
+  padding: 28px;
+}
+h2 { margin: 0 0 18px; font-size: 26px; letter-spacing: -0.02em; }
+h3 { margin: 24px 0 10px; font-size: 20px; }
+h4 { margin: 18px 0 8px; font-size: 16px; color: var(--accent); }
+p { margin: 8px 0 14px; }
+ul { margin-top: 8px; }
+.small { font-size: 13px; color: var(--muted); }
+.kicker { text-transform: uppercase; letter-spacing: .08em; font-size: 12px; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
+.grid { display: grid; gap: 18px; }
+.grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.metric { border-left: 5px solid var(--accent); background: #faf8ff; padding: 16px; border-radius: 12px; }
+.metric b { display:block; font-size: 26px; }
+.badge { display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; margin-right: 6px; }
+.badge.ai { background: #efe7ff; color: #4c1d95; }
+.badge.ops { background: #e0f2fe; color: #075985; }
+.badge.k8s { background: #dcfce7; color: #166534; }
+.badge.guard { background: #fff7ed; color: #9a3412; }
+table { width: 100%; border-collapse: collapse; margin: 14px 0 22px; font-size: 14px; }
+th, td { border: 1px solid var(--line); padding: 11px 12px; vertical-align: top; }
+th { background: #f1effa; text-align: left; font-size: 13px; color: #24113d; }
+tr:nth-child(even) td { background: #fbfbfe; }
+code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+pre { background: #12131a; color: #f5f7ff; border-radius: 12px; overflow: auto; padding: 18px; font-size: 13px; line-height: 1.42; }
+.flow { display: grid; gap: 12px; margin: 18px 0; }
+.flow-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; align-items: stretch; }
+.flow-node {
+  border: 2px solid #c4b5fd;
+  background: #fbfaff;
+  border-radius: 14px;
+  padding: 14px;
+  min-height: 112px;
+  position: relative;
+}
+.flow-node strong { display: block; color: #4c1d95; margin-bottom: 6px; }
+.flow-node .num { position: absolute; top: -10px; right: -10px; background: var(--accent); color: #fff; border-radius: 999px; width: 28px; height: 28px; display: grid; place-items:center; font-weight: 800; }
+.arrow { text-align: center; color: var(--accent); font-weight: 800; letter-spacing: 0.04em; }
+.pipeline { display: grid; grid-template-columns: repeat(9, minmax(120px, 1fr)); gap: 10px; overflow-x: auto; padding-bottom: 6px; }
+.pipeline div { min-height: 86px; background: #fff; border: 1px solid #ddd6fe; border-top: 5px solid var(--accent-2); border-radius: 12px; padding: 12px; font-size: 13px; }
+.pipeline strong { display:block; margin-bottom: 6px; color: var(--accent); }
+.callout { border-radius: 14px; padding: 16px 18px; margin: 16px 0; border: 1px solid #fed7aa; background: #fff7ed; }
+.callout strong { color: #9a3412; }
+.ok { color: var(--good); font-weight: 700; }
+.warn { color: var(--warn); font-weight: 700; }
+.risk { color: var(--bad); font-weight: 700; }
+.toc a { color: var(--accent); text-decoration: none; }
+.toc li { margin: 5px 0; }
+footer { margin-top: 26px; color: var(--muted); font-size: 12px; }
+@media (max-width: 960px) {
+  header { padding: 34px 24px; }
+  header h1 { font-size: 30px; }
+  main { padding: 0 14px; }
+  section, .card { padding: 20px; }
+  .grid-2, .grid-3, .flow-row { grid-template-columns: 1fr; }
+}
+@media print {
+  body { background: white; }
+  header { background: #35146b !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  main { margin-top: 0; max-width: none; }
+  section { break-inside: avoid; box-shadow: none; }
+  a { color: #111; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="kicker" style="color:#c4b5fd;">Research and target architecture</div>
+  <h1>AI-Powered CIS Benchmark Auditing Framework</h1>
+  <p>Enhancing the current OpenSCAP + Ansible + Jenkins VM compliance scanning process with AI-assisted inventory enrichment, risk prioritization, remediation generation, approval workflows, GitHub Actions migration, and Kubernetes/container coverage.</p>
+  <p class="small" style="color:#ddd6fe;">Source baseline: user-provided PDF, <em>Automating CIS Benchmark Auditing</em>, dated 17-02-2025.</p>
+</header>
+<main>
+
+<section id="toc" class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#baseline">Baseline extracted from the PDF</a></li>
+    <li><a href="#target">AI-powered target architecture</a></li>
+    <li><a href="#phases">AI insertion points across the lifecycle</a></li>
+    <li><a href="#integrations">Integration catalogue</a></li>
+    <li><a href="#jenkins-gha">Jenkins to GitHub Actions migration</a></li>
+    <li><a href="#kubernetes">Kubernetes, containers, and pods applicability</a></li>
+    <li><a href="#outputs">Expected outputs</a></li>
+    <li><a href="#roadmap">Implementation roadmap and controls</a></li>
+    <li><a href="#appendix">Implementation appendix</a></li>
+  </ol>
+</section>
+
+<section id="baseline">
+  <div class="kicker">1. Current-state baseline</div>
+  <h2>What the PDF already defines</h2>
+  <p>The source PDF describes an automation framework for CIS Benchmark compliance scans across Linux VMs. The existing design uses Jenkins for orchestration, Ansible for remote execution and collection, OpenSCAP on the target VMs for benchmark evaluation, and a centralized HTML dashboard for publishing scan results.</p>
+  <div class="grid grid-3">
+    <div class="metric"><b>Jenkins</b> Pipeline trigger, scheduling, archive, and dashboard publishing.</div>
+    <div class="metric"><b>Ansible</b> Inventory-driven execution across heterogeneous Linux VMs.</div>
+    <div class="metric"><b>OpenSCAP</b> CIS-oriented scan execution and per-VM HTML report generation.</div>
+  </div>
+  <h3>Baseline flow from the PDF</h3>
+  <div class="flow">
+    <div class="flow-row">
+      <div class="flow-node"><span class="num">1</span><strong>Trigger</strong>Jenkins invokes the compliance pipeline on schedule or on demand.</div>
+      <div class="flow-node"><span class="num">2</span><strong>Automate</strong>Ansible reads inventory and connects to all Linux VMs.</div>
+      <div class="flow-node"><span class="num">3</span><strong>Scan</strong>OpenSCAP evaluates the selected CIS/SCAP profile on each VM.</div>
+      <div class="flow-node"><span class="num">4</span><strong>Aggregate</strong>Ansible collects individual reports and supporting artifacts.</div>
+      <div class="flow-node"><span class="num">5</span><strong>Publish</strong>Jenkins archives reports and exposes a consolidated HTML dashboard.</div>
+    </div>
+  </div>
+  <p class="small">PDF alignment: pages 2-3 define the business problem and proposed automation; pages 4-7 define orchestration, automation, execution, publishing, notifications, and SIEM/dashboard integration; pages 8-11 show the dashboard and OpenSCAP report screens.</p>
+</section>
+
+<section id="target">
+  <div class="kicker">2. Target-state design</div>
+  <h2>AI-powered architecture overlay</h2>
+  <p>The recommended approach is not to replace OpenSCAP, Ansible, Jenkins, or GitHub Actions with AI. AI should sit as a governed enrichment and decision-support layer around deterministic scanners. Deterministic engines remain the source of compliance truth; AI accelerates interpretation, prioritization, remediation drafting, exception handling, and executive reporting.</p>
+  <div class="callout"><strong>Design principle:</strong> AI may recommend, summarize, classify, and generate change proposals. It should not silently modify production systems without policy checks, human approval for high-risk changes, auditable logs, and rollback plans.</div>
+  <h3>AI-enhanced end-to-end flow</h3>
+  <div class="pipeline">
+    <div><strong>1. Trigger</strong>Jenkins or GitHub Actions starts scan based on schedule, commit, image build, VM provisioning, or manual approval.</div>
+    <div><strong>2. Discover</strong>Pull asset metadata from CMDB/cloud inventory, owner data, exposure, criticality, OS, tags, and lifecycle state.</div>
+    <div><strong>3. Select profile</strong>AI recommends benchmark/profile and exceptions based on OS, role, workload, policy, and prior decisions.</div>
+    <div><strong>4. Execute scan</strong>Ansible/OpenSCAP or Kubernetes scanners run deterministic checks and produce ARF/XCCDF/HTML/JSON outputs.</div>
+    <div><strong>5. Normalize</strong>Parse results into a common schema covering asset, benchmark, score, rule ID, severity, evidence, and remediation.</div>
+    <div><strong>6. AI analyze</strong>RAG over benchmarks, internal standards, prior tickets, and runbooks clusters findings and explains root cause.</div>
+    <div><strong>7. Generate fix</strong>AI drafts Ansible tasks, shell remediations, Helm/Kustomize patches, Kyverno/Gatekeeper policies, and rollback steps.</div>
+    <div><strong>8. Approve/apply</strong>Ticket, PR, change workflow, and policy gates control remediation execution.</div>
+    <div><strong>9. Verify/report</strong>Re-scan, compare drift, publish dashboard, send Slack/Teams/email, and push events to SIEM/GRC.</div>
+  </div>
+  <h3>Reference target architecture</h3>
+  <table>
+    <thead><tr><th>Layer</th><th>Core tools</th><th>AI extension</th><th>Primary outputs</th></tr></thead>
+    <tbody>
+      <tr><td>Orchestration</td><td>Jenkins or GitHub Actions</td><td>AI run planner; smart trigger selection; failure triage; pipeline log summarization.</td><td>Run plan, job summary, failure RCA.</td></tr>
+      <tr><td>Inventory and context</td><td>Ansible inventory, CMDB, cloud APIs, tags</td><td>Asset enrichment, owner inference, risk context, duplicate asset detection.</td><td>Normalized asset graph and scan scope.</td></tr>
+      <tr><td>Scanning</td><td>OpenSCAP, oscap-report, kube-bench, Trivy, policy engines</td><td>Benchmark/profile recommendation and result normalization; no AI substitution for scanner verdicts.</td><td>ARF/XCCDF/HTML/JSON, per-asset evidence.</td></tr>
+      <tr><td>Analysis</td><td>Data lake, vector index, report parser</td><td>LLM/RAG summarization, clustering, risk scoring, exception recommendation, remediation mapping.</td><td>Prioritized findings and remediation plan.</td></tr>
+      <tr><td>Remediation</td><td>Ansible, shell, PRs, GitOps, Helm, Kustomize</td><td>AI-generated patches with confidence score, test evidence, blast-radius notes, rollback.</td><td>PRs, playbooks, tickets, change records.</td></tr>
+      <tr><td>Reporting</td><td>HTML dashboard, Jenkins/GHA artifacts, SIEM, GRC</td><td>Executive summaries, audit narratives, trend analysis, ChatOps Q&A, natural-language querying.</td><td>Dashboards, CSV/JSON, tickets, SIEM events, audit packs.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="phases">
+  <div class="kicker">3. AI insertion points</div>
+  <h2>Where AI can be incorporated across all phases</h2>
+  <table>
+    <thead><tr><th>#</th><th>Phase</th><th>AI capability</th><th>Integration points</th><th>Expected output</th><th>Control/guardrail</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td>Policy and governance setup</td><td>Convert internal hardening policies into benchmark mappings, control language, exception criteria, and approval workflows.</td><td>CIS benchmark PDFs, internal standards, GRC control library, exception register.</td><td>Policy-to-rule mapping matrix; standard exception templates.</td><td>Security owner signs off; maintain source references and model version.</td></tr>
+      <tr><td>1</td><td>Asset discovery and scope</td><td>Infer missing VM owner, environment, criticality, business service, internet exposure, and scan eligibility.</td><td>CMDB, cloud inventory, Ansible dynamic inventory, DNS/IPAM, vulnerability scanner, tags.</td><td>Clean scan inventory with risk attributes and ownership.</td><td>Flag low-confidence owner/criticality inference for manual review.</td></tr>
+      <tr><td>2</td><td>Benchmark/profile selection</td><td>Recommend SCAP content and profile based on OS distribution, version, workload role, regulatory scope, and previous accepted exceptions.</td><td>SCAP Security Guide, OpenSCAP content, benchmark repository, VM facts.</td><td>Profile decision record for each asset.</td><td>Do not auto-select weaker profile without explicit policy approval.</td></tr>
+      <tr><td>3</td><td>Pipeline planning</td><td>Predict scan duration, shard large inventories, retry flaky hosts, avoid maintenance windows, and prioritize critical systems first.</td><td>Jenkins/GHA history, Ansible facts, host reachability, change calendar.</td><td>Optimized run plan and parallelization strategy.</td><td>Rate-limit SSH and enforce approved maintenance windows.</td></tr>
+      <tr><td>4</td><td>Scan execution support</td><td>Summarize failed playbook logs, classify infrastructure failures vs compliance failures, and suggest scanner dependency fixes.</td><td>Jenkins/GHA logs, Ansible stdout, OpenSCAP stderr, package repositories.</td><td>Failure RCA and rerun recommendation.</td><td>AI suggestions remain advisory; deterministic retry policy decides re-execution.</td></tr>
+      <tr><td>5</td><td>Result normalization</td><td>Parse, enrich, and normalize XCCDF/ARF/JSON/HTML into a single compliance data model.</td><td>OpenSCAP result files, oscap-report JSON, report parser, data lake.</td><td>Canonical finding records with evidence and rule lineage.</td><td>Preserve raw scanner evidence; never overwrite original reports.</td></tr>
+      <tr><td>6</td><td>Risk prioritization</td><td>Prioritize failed rules using severity, asset exposure, business criticality, exploitability context, recurrence, and compensating controls.</td><td>CMDB, vulnerability scanners, EDR, SIEM, cloud security posture, tickets.</td><td>Risk-ranked remediation backlog with SLA.</td><td>Explain ranking factors and allow override with justification.</td></tr>
+      <tr><td>7</td><td>Root-cause clustering</td><td>Cluster recurring failures across fleets to identify golden-image, AMI, IaC, base container, or configuration drift causes.</td><td>Image builder, Terraform, Packer, Ansible roles, Git history, package baselines.</td><td>Root-cause groups and recommended systemic fix.</td><td>Require evidence linking findings to image/IaC source.</td></tr>
+      <tr><td>8</td><td>Remediation generation</td><td>Generate Ansible tasks, shell snippets, config diffs, rollback steps, and tests for each failed control.</td><td>Ansible roles, OpenSCAP remediation content, internal runbooks, OS package docs.</td><td>Reviewable remediation PR with explanation and test plan.</td><td>Mandatory code review; no direct production writes for high-impact controls.</td></tr>
+      <tr><td>9</td><td>Change and exception workflow</td><td>Draft Jira/ServiceNow tickets, exception justifications, owner-specific summaries, and risk acceptance language.</td><td>ITSM/GRC, CMDB owners, Slack/Teams, email.</td><td>Tickets and exception records with due dates.</td><td>Expiration date and approval authority required for exceptions.</td></tr>
+      <tr><td>10</td><td>Verification and drift detection</td><td>Compare before/after scan results, detect regressions, and forecast likely future non-compliance.</td><td>Compliance history, OpenSCAP reruns, asset lifecycle events.</td><td>Verification report, trend forecast, drift alerts.</td><td>Use deterministic rescan as pass/fail source of truth.</td></tr>
+      <tr><td>11</td><td>Reporting and audit evidence</td><td>Produce executive summaries, audit narratives, rule-level explanations, and natural-language answers over evidence.</td><td>HTML dashboard, data warehouse, vector search, SIEM, GRC.</td><td>Executive dashboard, audit pack, chat-based report explorer.</td><td>Citations to underlying evidence required for all AI-written audit claims.</td></tr>
+      <tr><td>12</td><td>Continuous learning</td><td>Learn from approved fixes, rejected suggestions, false positives, and exception outcomes.</td><td>PR comments, ticket closure codes, remediation history, post-incident reviews.</td><td>Improved recommendations and reusable remediation library.</td><td>Human feedback is curated before updating prompts/rules.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="integrations">
+  <div class="kicker">4. Integration catalogue</div>
+  <h2>Recommended integrations</h2>
+  <table>
+    <thead><tr><th>Integration</th><th>Purpose</th><th>AI capability enabled</th><th>Implementation note</th></tr></thead>
+    <tbody>
+      <tr><td>CMDB / ServiceNow / Jira Assets</td><td>Owner, service, environment, criticality, lifecycle state.</td><td>Risk-based scope and remediation ownership.</td><td>Sync asset IDs into Ansible inventory and report schema.</td></tr>
+      <tr><td>Cloud APIs: AWS, Azure, GCP</td><td>Dynamic VM inventory, tags, security groups, internet exposure.</td><td>Risk scoring and scope validation.</td><td>Use read-only cloud role; for GitHub Actions prefer OIDC where possible.</td></tr>
+      <tr><td>Image builder: Packer, EC2 Image Builder, golden AMI pipeline</td><td>Fix systemic baseline issues before VM deployment.</td><td>Findings-to-image-root-cause mapping.</td><td>Open remediation PR against image recipe or Ansible role.</td></tr>
+      <tr><td>Vulnerability scanner: Qualys, Tenable, Defender, Wiz, Prisma</td><td>Correlate misconfiguration with vulnerabilities and exposure.</td><td>Prioritized risk score and exploit context.</td><td>Do not merge vulnerability and compliance scores without clear weighting.</td></tr>
+      <tr><td>Secrets manager: Vault, AWS Secrets Manager, GitHub Secrets</td><td>SSH keys, tokens, webhook secrets, LLM API credentials.</td><td>Secure AI pipeline execution.</td><td>Never send secrets to AI prompts; mask and redact logs.</td></tr>
+      <tr><td>SIEM/SOAR: Splunk, Sentinel, QRadar</td><td>Security monitoring, alerting, incident correlation.</td><td>Compliance drift anomaly detection and incident context.</td><td>Send normalized JSON events plus run metadata.</td></tr>
+      <tr><td>Data lake / warehouse</td><td>Longitudinal compliance reporting and analytics.</td><td>Trend analysis, recurrence detection, forecasting.</td><td>Partition by scan date, environment, benchmark, asset.</td></tr>
+      <tr><td>Vector database / retrieval index</td><td>Ground AI answers in benchmark text, reports, runbooks, and approved fixes.</td><td>Evidence-backed summaries and remediation generation.</td><td>Index only approved content; attach source references to responses.</td></tr>
+      <tr><td>ChatOps: Slack, Teams, email</td><td>Operational notification and Q&A.</td><td>Ask questions such as "why did prod compliance drop?"</td><td>Restrict answer scope by user role and data classification.</td></tr>
+      <tr><td>Git provider: GitHub/GitLab/Bitbucket</td><td>PRs for remediation code and report publishing.</td><td>AI-generated PRs with reviewer assignment and test evidence.</td><td>Require branch protection and signed approvals.</td></tr>
+      <tr><td>Policy engines: OPA Gatekeeper, Kyverno</td><td>Kubernetes admission and audit policy.</td><td>Generate policies from CIS/pod findings.</td><td>Start in audit mode; enforce only after false-positive tuning.</td></tr>
+      <tr><td>Container security: Trivy, Grype, Syft, kube-bench</td><td>Image, cluster, node, and manifest checks.</td><td>Container/pod-specific risk and remediation guidance.</td><td>Keep VM OS, image, and Kubernetes control results separate but correlated.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="jenkins-gha">
+  <div class="kicker">5. CI/CD migration</div>
+  <h2>What changes if Jenkins is replaced by GitHub Actions?</h2>
+  <p>The scanning logic can remain largely the same: Ansible still runs the playbook and OpenSCAP still produces compliance artifacts. The main change is the orchestration substrate: Jenkinsfile, Jenkins agents, credentials, artifact publishing, and notifications become GitHub workflow YAML, self-hosted runners, GitHub Secrets/Environments, Actions artifacts, GitHub Pages or internal static hosting, and GitHub-native summaries.</p>
+  <table>
+    <thead><tr><th>Current Jenkins construct</th><th>GitHub Actions replacement</th><th>What to change</th><th>Risk/consideration</th></tr></thead>
+    <tbody>
+      <tr><td>Jenkinsfile</td><td><code>.github/workflows/cis-audit.yml</code></td><td>Translate stages into jobs and steps; use <code>workflow_dispatch</code>, <code>schedule</code>, and optional push/PR triggers.</td><td>Keep workflow simple; over-complex YAML can become hard to operate.</td></tr>
+      <tr><td>Jenkins controller/agent</td><td>GitHub Actions self-hosted runner</td><td>Install runner inside the same network zone as target VMs; label it <code>cis-runner</code>.</td><td>Runner must be patched, isolated, and least-privileged because it has internal access.</td></tr>
+      <tr><td>Jenkins credentials</td><td>GitHub Secrets, Environments, OIDC, enterprise secret store</td><td>Migrate SSH keys, inventory secrets, webhooks, cloud roles.</td><td>Use environment protection rules for production scans/remediation.</td></tr>
+      <tr><td>Build parameters</td><td><code>workflow_dispatch.inputs</code></td><td>Add inputs for environment, benchmark profile, inventory group, dry-run/remediate mode.</td><td>Restrict who can trigger production workflows.</td></tr>
+      <tr><td>Cron trigger</td><td><code>on.schedule.cron</code></td><td>Define schedules per environment or per repository.</td><td>Use separate jobs for prod/non-prod to simplify permissions.</td></tr>
+      <tr><td>Archive artifacts / publish HTML plugin</td><td><code>actions/upload-artifact</code>, GitHub Pages custom workflow, S3/static site upload</td><td>Upload raw XML/ARF/JSON, per-VM HTML reports, and generated consolidated dashboard.</td><td>Do not publish sensitive report evidence to public Pages.</td></tr>
+      <tr><td>Jenkins post actions</td><td>Always-run steps with <code>if: always()</code></td><td>Upload logs/reports and send notifications even when scans fail.</td><td>Separate infrastructure failure from compliance failure.</td></tr>
+      <tr><td>Jenkins HTML dashboard</td><td>GitHub Pages, artifact download, internal Nginx/S3/Blob static site</td><td>Publish <code>index.html</code>, report bundle, trend JSON.</td><td>For regulated environments, prefer internal hosting over GitHub Pages unless private Pages is approved.</td></tr>
+      <tr><td>Email/Slack plugin</td><td>Slack/Teams webhook action, email action, ITSM API</td><td>Send AI-generated summary with links to artifacts and top remediation PRs.</td><td>Redact secrets and sensitive host details in notifications.</td></tr>
+    </tbody>
+  </table>
+  <h3>Example GitHub Actions workflow skeleton</h3>
+  <pre><code>name: CIS VM Compliance Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment inventory folder
+        required: true
+        default: dev
+      profile:
+        description: CIS/OpenSCAP profile
+        required: true
+        default: xccdf_org.ssgproject.content_profile_cis
+      remediate:
+        description: Generate remediation only; do not auto-apply unless approved
+        type: boolean
+        default: false
+  schedule:
+    - cron: "0 3 * * *"
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+jobs:
+  scan:
+    runs-on: [self-hosted, linux, cis-runner]
+    environment: ${{ inputs.environment || 'scheduled' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate inventory and dependencies
+        run: |
+          ansible --version
+          oscap --version || true
+          test -f inventories/${{ inputs.environment || 'dev' }}/hosts.ini
+
+      - name: Run OpenSCAP via Ansible
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "False"
+        run: |
+          ansible-playbook \
+            -i inventories/${{ inputs.environment || 'dev' }}/hosts.ini \
+            playbooks/cis_scan.yml \
+            -e profile=${{ inputs.profile || 'xccdf_org.ssgproject.content_profile_cis' }}
+
+      - name: Normalize scanner outputs
+        if: always()
+        run: python tools/normalize_openscap_results.py --input reports/raw --output reports/normalized/findings.json
+
+      - name: AI enrich and summarize findings
+        if: always()
+        run: python tools/ai_enrich_findings.py --findings reports/normalized/findings.json --out reports/dashboard/index.html
+
+      - name: Upload compliance artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cis-compliance-reports
+          path: reports/
+          retention-days: 30
+
+      - name: Upload GitHub Pages artifact
+        if: always()
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: reports/dashboard
+
+  deploy-pages:
+    needs: scan
+    if: always()
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4</code></pre>
+  <div class="callout"><strong>Recommendation:</strong> keep remediation generation and remediation application as separate workflows. The first workflow produces PRs/tickets; the second applies approved remediations through protected environments.</div>
+</section>
+
+<section id="kubernetes">
+  <div class="kicker">6. Kubernetes and container extension</div>
+  <h2>Will this process apply to Kubernetes containers and pods?</h2>
+  <p><span class="ok">Yes, the operating model applies</span>, but the scanner targets and remediation mechanics change. OpenSCAP-on-VM is appropriate for Linux node or VM host compliance. Kubernetes requires cluster-level, node-level, workload-manifest, admission-policy, and container-image controls. Pods are ephemeral, so policy and image checks should happen before deployment and again through in-cluster continuous scanning.</p>
+  <h3>Kubernetes scope mapping</h3>
+  <table>
+    <thead><tr><th>Scope</th><th>Use this for</th><th>Recommended tooling</th><th>AI capability</th><th>Expected output</th></tr></thead>
+    <tbody>
+      <tr><td>Worker node OS</td><td>CIS Linux baseline for the node VM/host.</td><td>OpenSCAP via Ansible, SSM, DaemonSet with host access where approved.</td><td>Correlate node OS failures with kube-bench node failures and image baseline issues.</td><td>Node OS compliance score and remediation PR for node image.</td></tr>
+      <tr><td>Kubernetes control plane and nodes</td><td>CIS Kubernetes Benchmark checks for API server, kubelet, scheduler, controller manager, etc.</td><td>kube-bench Job/DaemonSet, Trivy Kubernetes scanning, managed-cloud benchmark variants.</td><td>Explain failed controls, identify managed-service limitations, generate cluster hardening backlog.</td><td>Cluster CIS score, failed controls, evidence logs, prioritized fix plan.</td></tr>
+      <tr><td>Container images</td><td>Package vulnerabilities, secrets, image config, SBOM, base image posture.</td><td>Trivy, Grype, Syft, image signing tools.</td><td>Recommend safer base images, cluster duplicate CVEs, map image risk to deployed workloads.</td><td>Image risk report, SBOM, PR to Dockerfile/base image.</td></tr>
+      <tr><td>Kubernetes manifests</td><td>SecurityContext, privileged pods, hostPath, hostNetwork, capabilities, runAsNonRoot, resources, labels.</td><td>Trivy config scan, kube-score, Polaris, kube-linter, custom policy tests.</td><td>Generate Kustomize/Helm/YAML patches and explain blast radius.</td><td>Manifest findings, YAML patch PR, application owner tickets.</td></tr>
+      <tr><td>Admission control</td><td>Prevent future non-compliant pods/resources.</td><td>Kyverno, OPA Gatekeeper, ValidatingAdmissionPolicy.</td><td>Generate audit-mode policies from observed findings, tune exceptions, recommend enforce mode.</td><td>Policy-as-code PRs, policy reports, enforcement metrics.</td></tr>
+      <tr><td>Runtime posture</td><td>Drift, risky exec, privilege escalation behavior, suspicious workload changes.</td><td>Falco/eBPF/runtime security, SIEM, audit logs.</td><td>Anomaly detection, incident narrative, risk correlation with CIS posture.</td><td>Runtime alerts correlated with compliance debt.</td></tr>
+    </tbody>
+  </table>
+  <h3>Kubernetes AI-powered flow</h3>
+  <div class="flow">
+    <div class="flow-row">
+      <div class="flow-node"><span class="num">1</span><strong>GitOps trigger</strong>PR, Helm chart change, cluster schedule, or new image build starts workflow.</div>
+      <div class="flow-node"><span class="num">2</span><strong>Pre-deploy checks</strong>Scan image, SBOM, secrets, and Kubernetes manifests.</div>
+      <div class="flow-node"><span class="num">3</span><strong>Cluster CIS scan</strong>Run kube-bench/Trivy against cluster and node configuration.</div>
+      <div class="flow-node"><span class="num">4</span><strong>AI enrich</strong>Map failed controls to owners, namespaces, workloads, root cause, and policy gaps.</div>
+      <div class="flow-node"><span class="num">5</span><strong>Remediate/prevent</strong>Create YAML/Helm/Kustomize patches and Kyverno/Gatekeeper audit or enforcement policies.</div>
+    </div>
+  </div>
+  <h3>Important Kubernetes caveats</h3>
+  <ul>
+    <li><strong>Managed Kubernetes:</strong> EKS, AKS, and GKE often hide control-plane files and flags. Some CIS checks will be not applicable, provider-managed, or require provider-specific benchmark profiles.</li>
+    <li><strong>Pods are ephemeral:</strong> avoid scanning every pod like a VM. Prefer image scanning, manifest scanning, admission controls, and Trivy Operator-style continuous in-cluster reporting.</li>
+    <li><strong>Host-level access:</strong> kube-bench and node collectors may require privileged access to host namespaces or directories. This must be approved and isolated.</li>
+    <li><strong>Policy lifecycle:</strong> start generated policies in audit mode, review false positives, then move to enforce mode with exceptions and expiration dates.</li>
+  </ul>
+</section>
+
+<section id="outputs">
+  <div class="kicker">7. Output design</div>
+  <h2>Expected outputs from the AI-powered framework</h2>
+  <div class="grid grid-2">
+    <div class="card" style="margin:0; box-shadow:none;">
+      <h3>Operational outputs</h3>
+      <ul>
+        <li>Consolidated HTML dashboard with global compliance score, per-asset score, top failed rules, severity distribution, and trend line.</li>
+        <li>Per-VM and per-cluster evidence bundles: raw OpenSCAP ARF/XCCDF/XML, HTML, normalized JSON, kube-bench logs, Trivy reports, policy reports.</li>
+        <li>AI-generated executive summary: what changed, why it matters, business risk, SLA, and owners.</li>
+        <li>AI remediation backlog grouped by root cause and owner.</li>
+        <li>ChatOps notifications with top changes and deep links to reports, tickets, and PRs.</li>
+      </ul>
+    </div>
+    <div class="card" style="margin:0; box-shadow:none;">
+      <h3>Engineering outputs</h3>
+      <ul>
+        <li>Reviewable remediation PRs for Ansible roles, Packer/Image Builder recipes, Terraform, Helm charts, Kustomize overlays, and policy-as-code.</li>
+        <li>ServiceNow/Jira tickets with generated description, evidence, owner, SLA, exception path, and rollback guidance.</li>
+        <li>Machine-readable JSON/CSV for data lake, SIEM, and GRC ingestion.</li>
+        <li>Audit-ready control mapping to CIS rule IDs and internal policies.</li>
+        <li>Regression reports comparing previous vs current scan outcomes.</li>
+      </ul>
+    </div>
+  </div>
+  <h3>Canonical finding schema</h3>
+  <pre><code>{
+  "run_id": "cis-2026-07-02T03:00Z",
+  "asset": {
+    "id": "i-0123456789abcdef0",
+    "name": "prod-web-01",
+    "type": "vm | k8s-node | cluster | namespace | workload | image",
+    "environment": "prod",
+    "owner": "platform-security",
+    "criticality": "high",
+    "internet_exposed": true
+  },
+  "benchmark": {
+    "family": "CIS",
+    "target": "Amazon Linux 2023 | Kubernetes | Docker | Ubuntu",
+    "profile": "standard | cis | custom-enterprise",
+    "version": "record exact scanner/content version"
+  },
+  "result": {
+    "score_percent": 46.41,
+    "rule_id": "xccdf_org.ssgproject.content_rule_...",
+    "title": "Verify and Correct File Permissions with RPM",
+    "severity": "high",
+    "status": "fail",
+    "evidence_uri": "reports/prod-web-01/report.html#rule-id"
+  },
+  "ai_enrichment": {
+    "risk_rank": "P1",
+    "reason": "High severity on internet-exposed production VM; repeated in golden image lineage.",
+    "root_cause_group": "base-image-integrity-controls",
+    "recommended_action": "Update image build role and re-run OpenSCAP verification.",
+    "confidence": 0.86,
+    "requires_human_approval": true
+  }
+}</code></pre>
+</section>
+
+<section id="roadmap">
+  <div class="kicker">8. Roadmap and guardrails</div>
+  <h2>Implementation roadmap</h2>
+  <table>
+    <thead><tr><th>Phase</th><th>Timeline</th><th>Deliverables</th><th>Success measure</th></tr></thead>
+    <tbody>
+      <tr><td>Foundation</td><td>Weeks 1-2</td><td>Normalize OpenSCAP outputs, define schema, build central dashboard v1, set up evidence storage.</td><td>100% of scans emit raw and normalized artifacts.</td></tr>
+      <tr><td>AI summarization</td><td>Weeks 3-4</td><td>RAG index for benchmark text/runbooks; AI summary generation; ChatOps notifications.</td><td>Security team can understand top failures without opening each VM report.</td></tr>
+      <tr><td>Risk prioritization</td><td>Weeks 5-6</td><td>CMDB/cloud enrichment, owner mapping, priority model, SLA assignment, ticket generation.</td><td>Findings routed to correct owner with severity and due date.</td></tr>
+      <tr><td>Remediation PRs</td><td>Weeks 7-10</td><td>AI-drafted Ansible/Image Builder/IaC PRs with test and rollback steps.</td><td>Approved fixes reduce repeated failures across image families.</td></tr>
+      <tr><td>Kubernetes extension</td><td>Weeks 11-14</td><td>kube-bench/Trivy/Kyverno/Gatekeeper reporting and AI-generated policy-as-code.</td><td>Cluster, namespace, workload, and node posture visible in one dashboard.</td></tr>
+      <tr><td>Optimization</td><td>Ongoing</td><td>Trend forecasting, exception governance, audit packs, continuous learning from approvals/rejections.</td><td>Reduced mean time to remediate and improved compliance trend.</td></tr>
+    </tbody>
+  </table>
+  <h3>AI governance controls</h3>
+  <ul>
+    <li><strong>Evidence-first:</strong> every AI conclusion must cite raw scanner evidence, source benchmark text, or internal policy.</li>
+    <li><strong>Least privilege:</strong> AI service has read-only access to findings and approved documents; write operations happen through PRs/tickets.</li>
+    <li><strong>Human approval:</strong> require approval for remediation that changes authentication, network, kernel, audit, SELinux/AppArmor, kubelet, API server, or production runtime settings.</li>
+    <li><strong>Prompt/data hygiene:</strong> redact secrets, tokens, host private keys, and sensitive business data before LLM calls.</li>
+    <li><strong>Model observability:</strong> log prompt template version, model version, sources used, generated output, reviewer feedback, and execution result.</li>
+    <li><strong>Rollback:</strong> every generated remediation must include rollback instructions and a re-scan verification step.</li>
+  </ul>
+</section>
+
+<section id="appendix">
+  <div class="kicker">9. Implementation appendix</div>
+  <h2>Practical implementation details</h2>
+  <h3>OpenSCAP command pattern</h3>
+  <pre><code>oscap xccdf eval \
+  --profile "$PROFILE_ID" \
+  --results-arf "reports/${HOSTNAME}/results.arf.xml" \
+  --report "reports/${HOSTNAME}/report.html" \
+  /usr/share/xml/scap/ssg/content/ssg-${OS_ID}-ds.xml
+
+oscap-report -f JSON -o "reports/${HOSTNAME}/result.json" "reports/${HOSTNAME}/results.arf.xml"</code></pre>
+  <h3>AI prompt contract for remediation generation</h3>
+  <pre><code>System role:
+  You are a security automation assistant. Use only provided scanner evidence,
+  approved runbooks, and benchmark text. Do not invent controls or claim a fix was applied.
+
+Inputs:
+  - Failed rule ID, title, severity, benchmark version, scanner evidence
+  - OS/distribution or Kubernetes version
+  - Existing Ansible role / Helm chart / Kustomize overlay
+  - Approved internal remediation patterns
+
+Required output:
+  - Root cause hypothesis with confidence
+  - Proposed fix as code patch
+  - Expected impact and blast radius
+  - Rollback steps
+  - Verification command
+  - Whether human approval is required</code></pre>
+  <h3>Decision matrix: Jenkins vs GitHub Actions</h3>
+  <table>
+    <thead><tr><th>Factor</th><th>Prefer Jenkins</th><th>Prefer GitHub Actions</th></tr></thead>
+    <tbody>
+      <tr><td>Existing enterprise CI/CD footprint</td><td>Heavy Jenkins shared libraries and centralized operations.</td><td>Most automation already lives in GitHub repositories.</td></tr>
+      <tr><td>Network locality</td><td>Jenkins agents already have private network reachability.</td><td>Self-hosted runners can be deployed securely in target network zones.</td></tr>
+      <tr><td>Artifact publishing</td><td>Existing internal Jenkins HTML publishing is approved.</td><td>GitHub artifact/Pages or internal static publishing is approved.</td></tr>
+      <tr><td>Remediation workflow</td><td>Ticket-driven ops workflow dominates.</td><td>GitOps and PR-driven infrastructure changes dominate.</td></tr>
+      <tr><td>Governance</td><td>Jenkins RBAC and credentials already mature.</td><td>GitHub environments, branch protection, OIDC, and PR reviews are mature.</td></tr>
+    </tbody>
+  </table>
+  <h3>Source and research notes</h3>
+  <table>
+    <thead><tr><th>#</th><th>Source</th><th>Use in this design</th><th>URL</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>CIS Benchmarks - Center for Internet Security</td><td>CIS Benchmarks are prescriptive secure configuration recommendations across operating systems, cloud providers, network devices, and other technology families.</td><td><a href="https://www.cisecurity.org/cis-benchmarks">https://www.cisecurity.org/cis-benchmarks</a></td></tr>
+      <tr><td>2</td><td>OpenSCAP User Manual</td><td>OpenSCAP checks security configuration settings with SCAP/XCCDF content and produces standardized compliance evidence.</td><td><a href="https://static.open-scap.org/openscap-1.3/oscap_user_manual.html">https://static.open-scap.org/openscap-1.3/oscap_user_manual.html</a></td></tr>
+      <tr><td>3</td><td>oscap-report documentation</td><td>oscap-report can generate HTML and JSON output from ARF/XCCDF result files.</td><td><a href="https://openscap-report.readthedocs.io/en/latest/oscap-report.1.html">https://openscap-report.readthedocs.io/en/latest/oscap-report.1.html</a></td></tr>
+      <tr><td>4</td><td>GitHub Actions self-hosted runners</td><td>Self-hosted runners are required when workflows need private-network access, custom OS tooling, and enterprise-controlled runtime environments.</td><td><a href="https://docs.github.com/en/actions/concepts/runners/self-hosted-runners">https://docs.github.com/en/actions/concepts/runners/self-hosted-runners</a></td></tr>
+      <tr><td>5</td><td>GitHub Pages custom workflows</td><td>GitHub Actions can build and publish static HTML reporting sites through GitHub Pages artifacts and deploy jobs.</td><td><a href="https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages">https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages</a></td></tr>
+      <tr><td>6</td><td>Aqua Security kube-bench</td><td>kube-bench checks Kubernetes deployments against the CIS Kubernetes Benchmark and can run in-cluster as a Kubernetes Job.</td><td><a href="https://github.com/aquasecurity/kube-bench">https://github.com/aquasecurity/kube-bench</a></td></tr>
+      <tr><td>7</td><td>Trivy Kubernetes scanning</td><td>Trivy Kubernetes scanning evaluates cluster and node configuration against hardening guidance, including CIS benchmark reports.</td><td><a href="https://trivy.dev/docs/latest/guide/target/kubernetes/">https://trivy.dev/docs/latest/guide/target/kubernetes/</a></td></tr>
+      <tr><td>8</td><td>Trivy Operator</td><td>Trivy Operator watches Kubernetes state changes and publishes security reports as Kubernetes custom resources.</td><td><a href="https://github.com/aquasecurity/trivy-operator">https://github.com/aquasecurity/trivy-operator</a></td></tr>
+      <tr><td>9</td><td>Kyverno policy reports</td><td>Kyverno produces policy reports for current Kubernetes resources and can be used for audit and enforcement workflows.</td><td><a href="https://kyverno.io/docs/guides/reports/">https://kyverno.io/docs/guides/reports/</a></td></tr>
+      <tr><td>10</td><td>OPA Gatekeeper for Kubernetes</td><td>OPA Gatekeeper provides Kubernetes-native admission control, parameterized policy libraries, constraints, and audit functionality.</td><td><a href="https://www.openpolicyagent.org/docs/kubernetes">https://www.openpolicyagent.org/docs/kubernetes</a></td></tr>
+    </tbody>
+  </table>
+  <footer>
+    Generated as a standalone HTML research document. Validate commands, benchmark content paths, and remediation actions in a non-production environment before use.
+  </footer>
+</section>
+
+</main>
+</body>
+</html>

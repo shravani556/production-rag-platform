@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAG — Architecture &amp; Interview Field Guide</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+<style>
+:root{
+  --navy-950:#0B1120;
+  --navy-900:#111A2E;
+  --navy-800:#16213E;
+  --indigo-500:#6366F1;
+  --indigo-300:#A5B4FC;
+  --cyan-400:#22D3EE;
+  --amber-500:#F59E0B;
+  --cream:#F7F7F4;
+  --paper:#FFFFFF;
+  --ink:#182233;
+  --slate-600:#4B5768;
+  --slate-400:#8B96A8;
+  --line:#E4E3DD;
+  --code-bg:#0E1626;
+  --radius:10px;
+  --font-display:'Space Grotesk',-apple-system,sans-serif;
+  --font-body:'Inter',-apple-system,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,Consolas,monospace;
+}
+@font-face{font-family:'Space Grotesk';src:local('Space Grotesk');}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  font-family:var(--font-body);
+  background:var(--cream);
+  color:var(--ink);
+  line-height:1.6;
+  font-size:15.5px;
+}
+a{color:var(--indigo-500);}
+
+/* Layout */
+.shell{display:flex;min-height:100vh;}
+.sidebar{
+  width:280px;
+  flex-shrink:0;
+  background:var(--navy-950);
+  color:#CBD3E1;
+  padding:28px 20px 60px;
+  position:sticky;
+  top:0;
+  height:100vh;
+  overflow-y:auto;
+}
+.sidebar::-webkit-scrollbar{width:6px;}
+.sidebar::-webkit-scrollbar-thumb{background:var(--navy-800);border-radius:3px;}
+.brand{
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:20px;
+  color:#fff;
+  letter-spacing:0.3px;
+  display:flex;align-items:center;gap:8px;
+  margin-bottom:4px;
+}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--cyan-400);display:inline-block;box-shadow:0 0 10px var(--cyan-400);}
+.brand-sub{font-size:11.5px;color:var(--slate-400);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:28px;}
+.nav-group{margin-bottom:2px;}
+.nav-link{
+  display:block;
+  padding:7px 10px;
+  border-radius:7px;
+  color:#B7C0D2;
+  text-decoration:none;
+  font-size:13.3px;
+  border-left:2px solid transparent;
+  transition:background .15s,color .15s;
+}
+.nav-link .num{color:var(--cyan-400);font-family:var(--font-mono);font-size:11.5px;margin-right:7px;}
+.nav-link:hover{background:var(--navy-800);color:#fff;}
+
+.main{flex:1;min-width:0;padding:48px 56px 120px;max-width:980px;}
+@media (max-width:900px){
+  .shell{flex-direction:column;}
+  .sidebar{position:relative;width:100%;height:auto;}
+  .main{padding:32px 20px 80px;}
+}
+
+/* Hero */
+.hero{margin-bottom:56px;}
+.eyebrow{
+  font-family:var(--font-mono);
+  font-size:12px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--indigo-500);
+  margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;
+}
+.eyebrow::before{content:"";width:26px;height:1px;background:var(--indigo-500);}
+h1.title{
+  font-family:var(--font-display);
+  font-size:44px;
+  line-height:1.08;
+  margin:0 0 18px;
+  color:var(--navy-950);
+  letter-spacing:-0.5px;
+}
+h1.title em{font-style:normal;color:var(--indigo-500);}
+.subtitle{font-size:17px;color:var(--slate-600);max-width:680px;margin-bottom:24px;}
+.hero-stats{display:flex;gap:28px;flex-wrap:wrap;padding-top:18px;border-top:1px solid var(--line);}
+.hero-stat b{display:block;font-family:var(--font-display);font-size:22px;color:var(--navy-950);}
+.hero-stat span{font-size:12px;color:var(--slate-400);text-transform:uppercase;letter-spacing:0.6px;}
+
+/* Sections */
+section.block{margin-bottom:64px;scroll-margin-top:24px;}
+.section-head{display:flex;align-items:baseline;gap:14px;margin-bottom:6px;}
+.section-head .idx{
+  font-family:var(--font-mono);
+  color:var(--indigo-500);
+  font-size:14px;
+  background:#EEF0FF;
+  border-radius:6px;
+  padding:2px 8px;
+}
+h2{
+  font-family:var(--font-display);
+  font-size:27px;
+  margin:0;
+  color:var(--navy-950);
+  letter-spacing:-0.2px;
+}
+h3{
+  font-family:var(--font-display);
+  font-size:18.5px;
+  margin:30px 0 10px;
+  color:var(--navy-900);
+}
+.section-intro{color:var(--slate-600);margin:14px 0 20px;max-width:760px;}
+p{margin:0 0 14px;}
+ul,ol{margin:0 0 16px;padding-left:22px;}
+li{margin-bottom:6px;}
+strong{color:var(--navy-950);}
+
+.card{
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:20px 22px;
+  margin-bottom:16px;
+}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+@media (max-width:760px){.grid-2,.grid-3{grid-template-columns:1fr;}}
+
+.pill{
+  display:inline-block;
+  font-family:var(--font-mono);
+  font-size:11.5px;
+  padding:3px 9px;
+  border-radius:20px;
+  background:var(--navy-950);
+  color:var(--cyan-400);
+  margin:2px 4px 2px 0;
+}
+.pill.amber{background:#FEF3E2;color:#92400E;}
+.pill.indigo{background:#EEF0FF;color:var(--indigo-500);}
+
+.callout{
+  border-left:3px solid var(--indigo-500);
+  background:#F4F5FF;
+  padding:14px 18px;
+  border-radius:0 8px 8px 0;
+  margin:18px 0;
+  font-size:14.5px;
+}
+.callout.amber{border-color:var(--amber-500);background:#FFF8EC;}
+.callout b{color:var(--navy-950);}
+
+table{width:100%;border-collapse:collapse;margin:14px 0 22px;font-size:13.6px;}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top;}
+th{
+  font-family:var(--font-mono);
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:0.6px;
+  color:var(--slate-400);
+  background:#FAFAF7;
+  border-bottom:2px solid var(--navy-950);
+}
+tr:hover td{background:#FBFBF9;}
+.table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--line);}
+.table-wrap table{margin:0;}
+.table-wrap th:first-child, .table-wrap td:first-child{font-weight:600;color:var(--navy-950);white-space:nowrap;}
+
+.mermaid-card{
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:22px;
+  margin:18px 0 26px;
+  overflow-x:auto;
+}
+.mermaid-label{
+  font-family:var(--font-mono);
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  color:var(--slate-400);
+  margin-bottom:10px;
+}
+
+/* Interview Q&A */
+.qa{
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  margin-bottom:12px;
+  overflow:hidden;
+}
+.qa summary{
+  list-style:none;
+  cursor:pointer;
+  padding:14px 18px;
+  font-family:var(--font-display);
+  font-weight:600;
+  font-size:15px;
+  color:var(--navy-950);
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.qa summary::-webkit-details-marker{display:none;}
+.qa summary::before{
+  content:"+";
+  font-family:var(--font-mono);
+  color:var(--indigo-500);
+  font-size:17px;
+  width:18px;
+  flex-shrink:0;
+}
+.qa[open] summary::before{content:"–";}
+.qa .qa-body{padding:0 18px 18px 48px;color:var(--slate-600);font-size:14.3px;}
+.qa .qa-body p{margin-bottom:10px;}
+
+/* Cheat sheet */
+.cheat{
+  background:var(--navy-950);
+  color:#DCE1EC;
+  border-radius:16px;
+  padding:36px 40px;
+  margin-top:20px;
+}
+.cheat h2{color:#fff;}
+.cheat .grid-3{margin-top:20px;}
+.cheat-card{
+  background:var(--navy-900);
+  border:1px solid var(--navy-800);
+  border-radius:10px;
+  padding:16px 18px;
+}
+.cheat-card h4{
+  font-family:var(--font-mono);
+  color:var(--cyan-400);
+  font-size:12.5px;
+  text-transform:uppercase;
+  letter-spacing:0.8px;
+  margin:0 0 8px;
+}
+.cheat-card ul{margin:0;padding-left:18px;font-size:13px;color:#B7C0D2;}
+.cheat-card li{margin-bottom:5px;}
+
+.footer-note{
+  margin-top:60px;
+  padding-top:20px;
+  border-top:1px solid var(--line);
+  color:var(--slate-400);
+  font-size:12.5px;
+}
+code{
+  font-family:var(--font-mono);
+  background:#EFEFEA;
+  padding:1px 6px;
+  border-radius:5px;
+  font-size:0.9em;
+  color:#B8471E;
+}
+
+
+/* Practical examples added */
+.example-block{
+  margin-top:26px;
+  padding-top:18px;
+  border-top:1px dashed var(--line);
+}
+.example-title{
+  font-family:var(--font-display);
+  font-size:19px;
+  color:var(--navy-950);
+  margin:0 0 12px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.example-title::before{
+  content:"Example";
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:.8px;
+  text-transform:uppercase;
+  color:var(--cyan-400);
+  background:var(--navy-950);
+  padding:3px 7px;
+  border-radius:14px;
+}
+.example-card{
+  background:#FFFFFF;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:17px 19px;
+  margin:12px 0;
+}
+.example-card h4{
+  font-family:var(--font-display);
+  font-size:15.5px;
+  color:var(--navy-900);
+  margin:0 0 8px;
+}
+.example-flow{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin:10px 0 4px;
+}
+.example-flow span{
+  font-family:var(--font-mono);
+  font-size:11.5px;
+  background:#EEF0FF;
+  color:var(--indigo-500);
+  border:1px solid #DDE2FF;
+  border-radius:16px;
+  padding:4px 8px;
+}
+.example-flow span::after{content:" →";color:var(--slate-400);}
+.example-flow span:last-child::after{content:"";}
+pre.example-code{
+  background:var(--code-bg);
+  color:#DCE1EC;
+  padding:14px 16px;
+  border-radius:9px;
+  overflow-x:auto;
+  font-family:var(--font-mono);
+  font-size:12.5px;
+  line-height:1.5;
+  margin:10px 0 14px;
+}
+pre.example-code code{
+  background:transparent;
+  color:inherit;
+  padding:0;
+  border-radius:0;
+}
+.small-note{
+  color:var(--slate-600);
+  font-size:13.8px;
+  margin-top:8px;
+}
+.bad-good{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-top:10px;
+}
+.bad-good .bad{border-left:3px solid #DC2626;background:#FFF5F5;}
+.bad-good .good{border-left:3px solid #16A34A;background:#F3FFF6;}
+@media (max-width:760px){.bad-good{grid-template-columns:1fr;}}
+
+</style>
+</head>
+<body>
+<div class="shell">
+
+<nav class="sidebar">
+  <div class="brand"><span class="dot"></span>RAG Field Guide</div>
+  <div class="brand-sub">Architecture · Interview Prep</div>
+
+  <div class="nav-group">
+    <a class="nav-link" href="#s1"><span class="num">01</span>What is RAG</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span>High-Level Architecture</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span>Pipeline Flow</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span>Indexing</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span>Chunking</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span>OCR</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span>Embedding Models</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span>Vector Search</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span>Re-ranking</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span>Reasoning Model / LLM</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span>RabbitMQ &amp; Messaging</a>
+    <a class="nav-link" href="#s12"><span class="num">12</span>Cloud Architectures</a>
+    <a class="nav-link" href="#s13"><span class="num">13</span>Comparison Table</a>
+    <a class="nav-link" href="#s14"><span class="num">14</span>Diagrams Index</a>
+    <a class="nav-link" href="#s15"><span class="num">15</span>Interview Q&amp;A</a>
+    <a class="nav-link" href="#s16"><span class="num">16</span>Best Practices</a>
+    <a class="nav-link" href="#s17"><span class="num">17</span>Cheat Sheet</a>
+  </div>
+</nav>
+
+<main class="main">
+
+<div class="hero">
+  <div class="eyebrow">Architecture &amp; Interview Field Guide</div>
+  <h1 class="title">Retrieval-Augmented <em>Generation</em></h1>
+  <p class="subtitle">A complete, visual walkthrough of RAG — from ingestion to answer generation — mapped across on-premises, Azure, AWS, Google Cloud, and Oracle Cloud, with interview-ready Q&amp;A and a final cheat sheet.</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><b>17</b><span>Sections</span></div>
+    <div class="hero-stat"><b>9</b><span>Diagrams</span></div>
+    <div class="hero-stat"><b>5</b><span>Environments Compared</span></div>
+    <div class="hero-stat"><b>21</b><span>Interview Questions</span></div>
+  </div>
+</div>
+
+<!-- ============ 1. WHAT IS RAG ============ -->
+<section class="block" id="s1">
+  <div class="section-head"><span class="idx">01</span><h2>What is RAG?</h2></div>
+  <p class="section-intro">The foundation concept, in plain language, before any architecture.</p>
+
+  <div class="card">
+    <h3 style="margin-top:0;">Simple explanation</h3>
+    <p>An LLM by itself only knows what it learned during training. <strong>Retrieval-Augmented Generation (RAG)</strong> is a technique that lets the model look things up in your own documents before it answers — like an open-book exam instead of a closed-book one. The model's job shrinks from "know everything" to "reason well over what was just handed to it."</p>
+    <p>In one sentence: <strong>RAG = search your data → hand the model the relevant pieces → let it write the answer using them.</strong></p>
+  </div>
+
+  <h3>Why RAG instead of relying only on the LLM?</h3>
+  <div class="grid-2">
+    <div class="card">
+      <strong>Problems RAG solves</strong>
+      <ul>
+        <li><strong>Hallucination</strong> — model invents facts when it doesn't know something</li>
+        <li><strong>Staleness</strong> — training data has a cutoff date</li>
+        <li><strong>No private data</strong> — the model never saw your internal documents</li>
+        <li><strong>No traceability</strong> — a raw LLM answer has no citation back to a source</li>
+        <li><strong>Fine-tuning is expensive</strong> — retraining for every new document is impractical</li>
+      </ul>
+    </div>
+    <div class="card">
+      <strong>What RAG gives you instead</strong>
+      <ul>
+        <li>Answers grounded in current, verifiable documents</li>
+        <li>Source citations for every answer</li>
+        <li>Easy updates — just re-index a document, no retraining</li>
+        <li>Data stays in your own store, not baked into model weights</li>
+        <li>Lower cost than continuous fine-tuning</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Model knowledge vs. external knowledge retrieval</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Model (parametric) knowledge</th><th>Retrieved (non-parametric) knowledge</th></tr>
+      <tr><td>Baked into the model's weights during training</td><td>Pulled live from an external store at query time</td></tr>
+      <tr><td>Frozen at the training cutoff</td><td>Always as current as the last re-index</td></tr>
+      <tr><td>Cannot be traced to a source</td><td>Comes with document ID, page number, citation</td></tr>
+      <tr><td>Cannot contain private/internal data</td><td>Can contain any document you index — internal or classified</td></tr>
+      <tr><td>Changing it requires fine-tuning/retraining</td><td>Changing it means uploading or removing a document</td></tr>
+    </table>
+  </div>
+
+  <h3>Common enterprise &amp; government use cases</h3>
+  <div class="grid-3">
+    <div class="card"><strong>Enterprise</strong>
+      <ul><li>Internal knowledge base / helpdesk copilots</li><li>Customer support over product manuals</li><li>Contract &amp; policy Q&amp;A</li><li>Sales enablement / RFP response drafting</li><li>Engineering docs and runbook search</li></ul>
+    </div>
+    <div class="card"><strong>Government</strong>
+      <ul><li>Citizen services chatbots over regulations</li><li>Case-file and legal precedent search</li><li>Policy and compliance research assistants</li><li>Classified/air-gapped document Q&amp;A</li><li>Multi-agency records search</li></ul>
+    </div>
+    <div class="card"><strong>Shared drivers</strong>
+      <ul><li>Answer must be traceable to a source</li><li>Data cannot leave a controlled boundary</li><li>Content changes faster than a model can be retrained</li><li>Auditability and access control matter as much as accuracy</li></ul>
+    </div>
+  </div>
+
+  <div class="example-block">
+    <h3 class="example-title">RAG in real business scenarios</h3>
+    <div class="grid-3">
+      <div class="example-card"><h4>HR policy assistant</h4><p><strong>User asks:</strong> “Can I claim taxi expenses for a client visit?”</p><p><strong>RAG action:</strong> retrieves the travel reimbursement policy, page 4, section “Taxi Claims.”</p><p><strong>Answer:</strong> “Yes. Taxi expenses are reimbursable up to AED 150 per approved client trip, with receipts submitted within 30 days.”</p></div>
+      <div class="example-card"><h4>Government regulation chatbot</h4><p><strong>User asks:</strong> “What documents are required to renew a trade license?”</p><p><strong>RAG action:</strong> searches the latest licensing regulation, not the model’s memory.</p><p><strong>Answer:</strong> lists the exact required forms, fees, validity period, and source regulation.</p></div>
+      <div class="example-card"><h4>Engineering runbook copilot</h4><p><strong>User asks:</strong> “What should I do if the payment API returns 502?”</p><p><strong>RAG action:</strong> retrieves the incident runbook and the recent postmortem.</p><p><strong>Answer:</strong> gives the escalation path, health-check command, rollback step, and owner team.</p></div>
+    </div>
+    <div class="callout"><b>Key idea:</b> RAG does not make the model memorize private documents. It retrieves the right private document sections at question time and asks the model to reason over those sections.</div>
+  </div>
+
+</section>
+
+<!-- ============ 2. HIGH LEVEL ARCHITECTURE ============ -->
+<section class="block" id="s2">
+  <div class="section-head"><span class="idx">02</span><h2>High-Level RAG Architecture</h2></div>
+  <p class="section-intro">Every RAG system — regardless of cloud — is built from the same set of layers. Learn these once; every cloud mapping later is just "same layer, different service name."</p>
+
+  <div class="mermaid-card">
+    <div class="mermaid-label">Generic RAG Architecture</div>
+    <div class="mermaid">
+flowchart TB
+    U[User Interface] --> API[API Layer]
+    API --> AUTH[Authentication and Authorization]
+    AUTH --> UP[Document Upload Layer]
+    UP --> FP[File Processing Layer]
+    FP --> OCR[OCR Layer]
+    OCR --> CH[Chunking Layer]
+    CH --> EMB[Embedding Layer]
+    EMB --> VDB[(Vector Database / Vector Index)]
+    EMB --> META[(Metadata Store)]
+    AUTH --> QP[Query Processing]
+    QP --> RET[Retrieval]
+    VDB --> RET
+    META --> RET
+    RET --> RR[Re-ranking]
+    RR --> PC[Prompt Construction]
+    PC --> LLM[Reasoning Model / LLM]
+    LLM --> RESP[Response Generation]
+    RESP --> U
+    RESP --> LOG[Logging, Monitoring, Feedback Loop]
+    LOG -.-> QP
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th>Layer</th><th>Job in one line</th></tr>
+      <tr><td>User Interface</td><td>Where a person types a question or uploads a document</td></tr>
+      <tr><td>API Layer</td><td>Contract between UI and backend services (REST/GraphQL)</td></tr>
+      <tr><td>Auth &amp; Authorization</td><td>Confirms who the user is and what they're allowed to see</td></tr>
+      <tr><td>Document Upload</td><td>Accepts files and stages them for processing</td></tr>
+      <tr><td>File Processing</td><td>Parses PDFs/Word/PPT/Excel into raw text</td></tr>
+      <tr><td>OCR</td><td>Extracts text from scans, images, and photographed pages</td></tr>
+      <tr><td>Chunking</td><td>Splits long documents into retrievable-sized pieces</td></tr>
+      <tr><td>Embedding</td><td>Converts text chunks into numeric vectors</td></tr>
+      <tr><td>Vector DB / Index</td><td>Stores vectors for fast similarity search</td></tr>
+      <tr><td>Metadata Store</td><td>Stores document ID, owner, tags, permissions, page numbers</td></tr>
+      <tr><td>Query Processing</td><td>Cleans/rewrites the user's question</td></tr>
+      <tr><td>Retrieval</td><td>Finds the most relevant chunks for the query</td></tr>
+      <tr><td>Re-ranking</td><td>Re-orders retrieved chunks by true relevance</td></tr>
+      <tr><td>Prompt Construction</td><td>Assembles question + chunks + instructions into one prompt</td></tr>
+      <tr><td>Reasoning Model / LLM</td><td>Generates the final answer from the prompt</td></tr>
+      <tr><td>Response Generation</td><td>Formats the answer, adds citations, returns to UI</td></tr>
+      <tr><td>Logging / Monitoring / Feedback</td><td>Captures usage, quality signals, and thumbs up/down for improvement</td></tr>
+    </table>
+  </div>
+
+  <div class="example-block">
+    <h3 class="example-title">One document passing through every architecture layer</h3>
+    <div class="example-card">
+      <h4>Example file: Travel_Reimbursement_Policy_2026.pdf</h4>
+      <div class="example-flow"><span>Upload portal</span><span>API layer</span><span>Auth check</span><span>Object storage</span><span>Parser/OCR</span><span>Chunking</span><span>Embedding</span><span>Vector DB</span><span>Metadata DB</span><span>Query answer</span></div>
+      <div class="table-wrap"><table>
+        <tr><th>Architecture layer</th><th>Concrete example</th><th>Why it matters</th></tr>
+        <tr><td>User Interface</td><td>HR admin uploads the travel policy from an internal portal.</td><td>Starts controlled ingestion.</td></tr>
+        <tr><td>API Layer</td><td><code>POST /documents/upload</code> receives the file.</td><td>Validates file size, type, tenant, and request format.</td></tr>
+        <tr><td>Authentication</td><td>Only users with <code>HR_Admin</code> role can upload policy documents.</td><td>Prevents unauthorized data ingestion.</td></tr>
+        <tr><td>File Processing</td><td>PDF parser extracts selectable text from pages 1–12.</td><td>Turns file bytes into text.</td></tr>
+        <tr><td>OCR</td><td>Skipped for pages with text; used for scanned appendix pages.</td><td>Makes image-only text searchable.</td></tr>
+        <tr><td>Chunking</td><td>Each policy section becomes one chunk with 10% overlap.</td><td>Improves retrieval precision.</td></tr>
+        <tr><td>Embedding</td><td>Each chunk is converted to a vector.</td><td>Enables semantic search.</td></tr>
+        <tr><td>Vector DB</td><td>Stores vectors for chunks like “Taxi Reimbursement.”</td><td>Returns meaning-similar chunks fast.</td></tr>
+        <tr><td>Metadata Store</td><td>Stores file name, page, version, owner, sensitivity tag, access role.</td><td>Supports citations, filtering, and auditability.</td></tr>
+        <tr><td>LLM</td><td>Receives only the top retrieved policy chunks.</td><td>Generates grounded answers instead of guessing.</td></tr>
+      </table></div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============ 3. PIPELINE FLOW ============ -->
+<section class="block" id="s3">
+  <div class="section-head"><span class="idx">03</span><h2>RAG Pipeline Flow</h2></div>
+  <p class="section-intro">RAG really runs as two independent pipelines: one that happens once per document (ingestion) and one that happens on every question (query-time).</p>
+
+  <h3>A. Document ingestion pipeline</h3>
+  <div class="mermaid-card">
+    <div class="mermaid">
+flowchart LR
+    A[Upload: PDF, Word, PPT, Excel, CSV, JSON, Images, Scans, HTML] --> B[File Validation]
+    B --> C[Text Extraction]
+    C --> D[OCR where needed]
+    D --> E[Clean and Normalize]
+    E --> F[Chunking]
+    F --> G[Add Metadata]
+    G --> H[Generate Embeddings]
+    H --> I[(Store in Vector DB / Search Index)]
+    B --> J{Duplicate?}
+    J -- Yes --> K[Version and Re-index]
+    J -- No --> C
+    K --> I
+    </div>
+  </div>
+  <p>Key decision point: <strong>duplicate detection</strong> happens right after validation — usually via a content hash — so the same file uploaded twice doesn't create duplicate vectors; instead it triggers versioning and selective re-indexing.</p>
+
+  <h3>B. Query-time pipeline</h3>
+  <div class="mermaid-card">
+    <div class="mermaid">
+flowchart LR
+    A[User Question] --> B[Clean / Rewrite Query]
+    B --> C[Generate Query Embedding]
+    C --> D[Vector Search]
+    B --> E[Keyword Search]
+    D --> F[Hybrid Merge]
+    E --> F
+    F --> G[Re-rank Top Candidates]
+    G --> H[Build Prompt: Question + Top Chunks]
+    H --> I[LLM Generates Answer]
+    I --> J[Attach Citations / Sources]
+    J --> K[Return Answer to User]
+    K --> L[Log + Capture Feedback]
+    </div>
+  </div>
+
+  <div class="callout"><b>Interview framing:</b> "Ingestion happens once per document and is write-heavy; query-time happens on every question and must be low-latency. The two pipelines share the embedding model but almost never share the same infrastructure scaling profile."</div>
+
+  <div class="example-block">
+    <h3 class="example-title">Pipeline examples by document type</h3>
+    <div class="example-card">
+      <h4>PDF without image / digital PDF</h4>
+      <p><strong>File:</strong> <code>Employee_Leave_Policy.pdf</code>. The text is selectable in a PDF reader.</p>
+      <div class="example-flow"><span>Validate PDF</span><span>Extract text directly</span><span>Skip OCR</span><span>Clean text</span><span>Chunk by headings</span><span>Embed</span><span>Index</span></div>
+      <pre class="example-code"><code>Extracted text:
+Section: Annual Leave
+Employees are entitled to 30 calendar days of annual leave after completing one year of service.</code></pre>
+    </div>
+    <div class="example-card">
+      <h4>PDF with image / scanned PDF</h4>
+      <p><strong>File:</strong> <code>Scanned_Insurance_Form.pdf</code>. The pages are images; text cannot be selected.</p>
+      <div class="example-flow"><span>Validate PDF</span><span>Detect no text layer</span><span>Run OCR</span><span>Normalize OCR output</span><span>Chunk per page/section</span><span>Embed</span><span>Index</span></div>
+      <pre class="example-code"><code>OCR output:
+Policy Number: INS-88291
+Coverage Type: Family Medical Insurance
+Annual Limit: AED 250,000</code></pre>
+    </div>
+    <div class="example-card">
+      <h4>Query-time flow example</h4>
+      <p><strong>User question:</strong> “How many annual leave days do employees get?”</p>
+      <div class="example-flow"><span>Clean query</span><span>Create query embedding</span><span>Vector search</span><span>Keyword search</span><span>Hybrid merge</span><span>Re-rank</span><span>Build prompt</span><span>Generate answer</span><span>Add citation</span></div>
+      <p><strong>Final answer:</strong> “Employees get 30 calendar days of annual leave after completing one year of service.”</p>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============ 4. INDEXING ============ -->
+<section class="block" id="s4">
+  <div class="section-head"><span class="idx">04</span><h2>What Is Indexing?</h2></div>
+  <p class="section-intro">Indexing is what makes search fast — without it, every query would mean scanning every document from scratch.</p>
+
+  <p><strong>Indexing</strong> is the process of pre-organizing content into a structure that supports fast lookup at query time, instead of scanning raw documents on every question.</p>
+
+  <h3>Keyword indexing vs. vector indexing</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th></th><th>Keyword Indexing</th><th>Vector Indexing</th></tr>
+      <tr><td>Matches on</td><td>Exact words / tokens</td><td>Meaning / semantic similarity</td></tr>
+      <tr><td>Structure</td><td>Inverted index</td><td>Vector space (embeddings)</td></tr>
+      <tr><td>Good at</td><td>Exact terms, IDs, codes, names</td><td>Paraphrases, concepts, "similar meaning" queries</td></tr>
+      <tr><td>Weak at</td><td>Synonyms, paraphrasing</td><td>Exact numbers/codes, rare tokens</td></tr>
+      <tr><td>Example tech</td><td>Elasticsearch, OpenSearch, Lucene</td><td>pgvector, Milvus, Qdrant, Azure AI Search vector index</td></tr>
+    </table>
+  </div>
+
+  <h3>What actually gets indexed</h3>
+  <ul>
+    <li><strong>Text</strong> — the chunk content itself</li>
+    <li><strong>Chunks</strong> — segmented pieces of the source document</li>
+    <li><strong>Metadata</strong> — source file, author, department, sensitivity tag, date</li>
+    <li><strong>Embeddings</strong> — the numeric vector for each chunk</li>
+    <li><strong>Document IDs</strong> — for grouping chunks back to the parent file</li>
+    <li><strong>Page numbers / section titles</strong> — for citations and precise navigation</li>
+  </ul>
+
+  <h3>Re-uploading the same document</h3>
+  <div class="card">
+    <ol>
+      <li>The system computes a <strong>hash</strong> (e.g. SHA-256) of the file content on upload.</li>
+      <li>If the hash matches an existing document, it's flagged as a <strong>duplicate</strong> and the upload can be skipped or treated as a new version.</li>
+      <li>If content changed, the file is assigned a new <strong>version number</strong>, and only the changed chunks are re-embedded (delta re-indexing) rather than the whole document.</li>
+      <li>Old vectors tied to the previous version are either kept (versioned history) or retired, depending on business rules.</li>
+    </ol>
+  </div>
+
+  <div class="example-block">
+    <h3 class="example-title">Keyword, vector, hybrid, and metadata indexing examples</h3>
+    <div class="example-card">
+      <h4>Source chunks to index</h4>
+      <pre class="example-code"><code>Chunk A: Employees can claim taxi reimbursement up to AED 150 per trip for approved client meetings.
+Chunk B: Invoice INV-2291 was submitted by Finance on 12 March 2026.
+Chunk C: Annual leave entitlement is 30 calendar days after one year of service.</code></pre>
+    </div>
+    <div class="grid-2">
+      <div class="example-card"><h4>Keyword indexing</h4><p>Builds an inverted index from terms to chunks.</p><div class="table-wrap"><table><tr><th>Keyword</th><th>Matching chunk</th></tr><tr><td><code>INV-2291</code></td><td>Chunk B</td></tr><tr><td><code>taxi</code></td><td>Chunk A</td></tr><tr><td><code>annual leave</code></td><td>Chunk C</td></tr></table></div><p><strong>Best query:</strong> “INV-2291” because invoice numbers require exact matching.</p></div>
+      <div class="example-card"><h4>Vector indexing</h4><p>Stores embeddings so the system can search by meaning.</p><pre class="example-code"><code>Chunk A vector: [0.13, -0.44, 0.88, ...]
+Query vector for “Can I expense a cab?”: [0.11, -0.40, 0.84, ...]</code></pre><p><strong>Best query:</strong> “Can I expense a cab?” because it means “taxi reimbursement” without using the same words.</p></div>
+    </div>
+    <div class="example-card">
+      <h4>Hybrid indexing</h4>
+      <p><strong>User query:</strong> “What is the refund process for order ORD-7781?”</p>
+      <ul><li><strong>Keyword search</strong> finds exact order ID <code>ORD-7781</code>.</li><li><strong>Vector search</strong> finds semantically related chunks about refunds, returns, approvals, and payment reversal.</li><li><strong>Hybrid merge</strong> combines both, so the answer is tied to the exact order and the correct refund policy.</li></ul>
+    </div>
+    <div class="example-card">
+      <h4>Metadata indexing and access filtering</h4>
+      <pre class="example-code"><code>{
+  "document_id": "DOC-001",
+  "file_name": "Travel_Reimbursement_Policy_2026.pdf",
+  "page": 4,
+  "section": "Taxi Reimbursement",
+  "department": "HR",
+  "classification": "Internal",
+  "version": "v2",
+  "access_role": ["Employee", "HR"]
+}</code></pre>
+      <p>If a contractor does not have the <code>Employee</code> or <code>HR</code> role, retrieval must filter this chunk out before the LLM sees it.</p>
+    </div>
+    <div class="example-card">
+      <h4>Re-uploading the same document</h4>
+      <div class="table-wrap"><table><tr><th>Upload</th><th>Hash</th><th>System action</th></tr><tr><td>First upload</td><td><code>abc123</code></td><td>Create version v1 and index all chunks.</td></tr><tr><td>Second upload, same content</td><td><code>abc123</code></td><td>Detect duplicate and skip re-indexing.</td></tr><tr><td>Third upload, changed limit</td><td><code>xyz789</code></td><td>Create version v2 and re-index changed chunks only.</td></tr></table></div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============ 5. CHUNKING ============ -->
+<section class="block" id="s5">
+  <div class="section-head"><span class="idx">05</span><h2>What Is Chunking?</h2></div>
+  <p class="section-intro">Chunking decides how much text becomes one retrievable unit — arguably the single highest-leverage design decision in a RAG system.</p>
+
+  <p><strong>Chunking</strong> is splitting a document into smaller pieces so that (a) each piece fits the embedding model's input limit, (b) each piece is small enough to be specific, and (c) each piece is still large enough to carry meaning on its own.</p>
+
+  <h3>Chunking strategies</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Strategy</th><th>How it splits</th><th>Best for</th></tr>
+      <tr><td>Fixed-size</td><td>Every N tokens/characters</td><td>Simple, uniform text; fast to implement</td></tr>
+      <tr><td>Sentence-based</td><td>At sentence boundaries</td><td>Preserving grammatical completeness</td></tr>
+      <tr><td>Paragraph-based</td><td>At paragraph breaks</td><td>Narrative or explanatory content</td></tr>
+      <tr><td>Semantic</td><td>At meaning shifts (embedding similarity drop)</td><td>Long-form content with topic changes</td></tr>
+      <tr><td>Page-based</td><td>One chunk per page</td><td>Scanned reports, regulatory filings</td></tr>
+      <tr><td>Section/header-based</td><td>At heading structure (H1/H2, numbered clauses)</td><td>Manuals, policies, legal contracts</td></tr>
+      <tr><td>Table-aware</td><td>Keeps a full table (or logical row groups) intact</td><td>Financial statements, spec sheets</td></tr>
+      <tr><td>Slide-aware</td><td>One chunk per slide (+ speaker notes)</td><td>PowerPoint decks</td></tr>
+    </table>
+  </div>
+
+  <h3>Chunk overlap</h3>
+  <p>Overlap means the end of one chunk repeats at the start of the next (typically 10–20% of chunk size). It prevents a fact from being split exactly at a chunk boundary and losing context on either side.</p>
+
+  <h3>Chunk size depends on</h3>
+  <div class="grid-2">
+    <div class="card">
+      <ul>
+        <li><strong>Document type</strong> — dense legal text needs smaller chunks than narrative text</li>
+        <li><strong>Model context window</strong> — bigger windows tolerate more/larger chunks per prompt</li>
+        <li><strong>Embedding model limits</strong> — most cap input at 512–8192 tokens</li>
+        <li><strong>Retrieval quality</strong> — too large dilutes relevance; too small loses context</li>
+      </ul>
+    </div>
+    <div class="card">
+      <ul>
+        <li><strong>Answer accuracy</strong> — precise answers need precise, well-scoped chunks</li>
+        <li><strong>Latency</strong> — smaller chunks retrieve faster but need more of them</li>
+        <li><strong>Cost</strong> — more chunks = more tokens = higher LLM cost</li>
+        <li><strong>Domain complexity</strong> — technical/legal domains often need smaller, denser chunks</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Practical chunk-size starting points</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Document type</th><th>Typical chunk size</th><th>Notes</th></tr>
+      <tr><td>PDF (general)</td><td>500–1000 tokens</td><td>Section-based when structure exists</td></tr>
+      <tr><td>Word documents</td><td>500–800 tokens</td><td>Split on headings first</td></tr>
+      <tr><td>PowerPoint</td><td>1 slide/chunk</td><td>Include speaker notes as extra context</td></tr>
+      <tr><td>Excel/CSV</td><td>Row-group or sheet-based</td><td>Row + headers together for meaning</td></tr>
+      <tr><td>JSON</td><td>Per object/record</td><td>Flatten nested keys into readable text</td></tr>
+      <tr><td>Scanned images</td><td>Per page</td><td>Depends heavily on OCR quality</td></tr>
+      <tr><td>Legal documents</td><td>200–500 tokens</td><td>Split by clause/section number</td></tr>
+      <tr><td>Technical manuals</td><td>300–600 tokens</td><td>Keep procedure steps together</td></tr>
+      <tr><td>Policy documents</td><td>300–500 tokens</td><td>One policy clause per chunk</td></tr>
+      <tr><td>Government reports</td><td>500–800 tokens</td><td>Preserve section/annex structure</td></tr>
+    </table>
+  </div>
+
+  <div class="example-block">
+    <h3 class="example-title">Chunking examples for common file types</h3>
+    <div class="grid-2">
+      <div class="example-card"><h4>Fixed-size chunking</h4><p>Split every 500 tokens regardless of headings.</p><pre class="example-code"><code>Chunk 1: Section 1 and start of Section 2...
+Chunk 2: End of Section 2 and start of Section 3...</code></pre><p class="small-note">Fast, but may cut a policy rule in the middle.</p></div>
+      <div class="example-card"><h4>Section/header-based chunking</h4><p>Split by real document structure.</p><pre class="example-code"><code>Chunk 1: 1. Annual Leave
+Employees are entitled to 30 calendar days...
+
+Chunk 2: 2. Sick Leave
+A medical certificate is required...</code></pre><p class="small-note">Best for policies, manuals, contracts, and regulations.</p></div>
+      <div class="example-card"><h4>Table-aware chunking</h4><p>Keep table headers with rows.</p><pre class="example-code"><code>Travel reimbursement limits:
+Taxi: AED 150 per trip
+Hotel: AED 700 per night
+Meals: AED 100 per day</code></pre><p class="small-note">Prevents values from being separated from their labels.</p></div>
+      <div class="example-card"><h4>Slide-aware chunking</h4><p>One slide plus speaker notes becomes one chunk.</p><pre class="example-code"><code>Slide 8: Q3 Sales Performance
+- Revenue increased by 18%
+- UAE market grew fastest
+Speaker notes: Growth was driven by government accounts.</code></pre></div>
+      <div class="example-card"><h4>CSV / Excel chunking</h4><p>Group rows with headers and business meaning.</p><pre class="example-code"><code>Sheet: Leave Balance
+Sara Ali from Finance has 18 leave days.
+Omar Khan from HR has 22 leave days.</code></pre></div>
+      <div class="example-card"><h4>JSON chunking</h4><p>Convert nested JSON into readable text before embedding.</p><pre class="example-code"><code>Original: {"employee_id":"E1021","department":"Finance","leave_balance":18}
+Readable chunk: Employee E1021 works in Finance and has 18 leave days.</code></pre></div>
+    </div>
+    <div class="bad-good">
+      <div class="example-card bad"><h4>Bad chunk</h4><p>“Taxi, Hotel, Meals, AED 150, AED 700, AED 100.”</p><p>No relationship between item and amount.</p></div>
+      <div class="example-card good"><h4>Good chunk</h4><p>“Taxi reimbursement limit is AED 150 per trip. Hotel reimbursement limit is AED 700 per night. Meal allowance is AED 100 per day.”</p><p>Every value keeps its business meaning.</p></div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============ 6. OCR ============ -->
+<section class="block" id="s6">
+  <div class="section-head"><span class="idx">06</span><h2>OCR in RAG</h2></div>
+  <p class="section-intro">OCR is the bridge between "pixels" and "text" — without it, scanned content is invisible to a RAG system.</p>
+
+  <p><strong>OCR (Optical Character Recognition)</strong> converts images of text — scans, photos, screenshots — into machine-readable text that can be chunked and embedded like any other document.</p>
+
+  <h3>When OCR is required</h3>
+  <div class="grid-3">
+    <div class="card"><ul><li>Scanned PDFs (no text layer)</li><li>Photographed documents</li><li>Screenshots</li></ul></div>
+    <div class="card"><ul><li>Handwritten forms</li><li>Government/legacy paper forms</li><li>Faxed documents</li></ul></div>
+    <div class="card"><ul><li>Tables embedded inside images</li><li>Charts with labeled data</li><li>Signed/stamped documents</li></ul></div>
+  </div>
+
+  <h3>Where OCR sits in the pipeline</h3>
+  <p>File Processing detects whether a document already has a text layer. If not (or if it's an image format), the file is routed to the OCR engine, which returns extracted text plus, ideally, bounding-box/page-position metadata — before the text ever reaches chunking.</p>
+
+  <h3>Limitations &amp; downstream effects</h3>
+  <div class="callout amber">
+    <b>Garbage in, garbage out:</b> OCR errors (misread characters, merged columns, missed handwriting) become permanent text errors. Bad OCR text produces bad embeddings, which produces irrelevant retrieval, which produces a wrong or fabricated-sounding answer — the error compounds at every downstream stage.
+  </div>
+  <ul>
+    <li>Struggles with poor scan quality, skewed pages, low-contrast text</li>
+    <li>Complex table layouts can lose row/column alignment</li>
+    <li>Handwriting recognition accuracy is far lower than printed text</li>
+    <li>Mitigations: confidence-score thresholds, human-in-the-loop review for low-confidence pages, image pre-processing (deskew, denoise)</li>
+  </ul>
+
+  <h3>OCR services by environment</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Environment</th><th>OCR service</th></tr>
+      <tr><td>Azure</td><td>Azure AI Document Intelligence</td></tr>
+      <tr><td>AWS</td><td>Amazon Textract</td></tr>
+      <tr><td>Google Cloud</td><td>Document AI / Vision AI</td></tr>
+      <tr><td>Oracle Cloud</td><td>OCI Document Understanding / OCI Vision</td></tr>
+      <tr><td>On-premises</td><td>Tesseract, PaddleOCR, or commercial engines (ABBYY FineReader)</td></tr>
+    </table>
+  </div>
+
+  <div class="example-block">
+    <h3 class="example-title">OCR examples: when to use it and when to skip it</h3>
+    <div class="example-card"><h4>PDF without image: OCR skipped</h4><p><strong>File:</strong> <code>Company_Leave_Policy.pdf</code>. Text is selectable.</p><div class="example-flow"><span>PDF parser</span><span>Extract text</span><span>Clean</span><span>Chunk</span><span>Embed</span></div><p><strong>Reason:</strong> Running OCR would add cost and may introduce errors when clean embedded text already exists.</p></div>
+    <div class="example-card"><h4>PDF with image: OCR required</h4><p><strong>File:</strong> <code>Scanned_Contract.pdf</code>. Pages are image scans.</p><div class="example-flow"><span>Raster page image</span><span>OCR engine</span><span>Extract text + bounding boxes</span><span>Confidence scoring</span><span>Chunk</span></div><pre class="example-code"><code>OCR result:
+Clause 5.2: The supplier shall deliver all goods within 30 calendar days.</code></pre></div>
+    <div class="example-card"><h4>Scanned invoice table</h4><div class="table-wrap"><table><tr><th>Field</th><th>Correct OCR</th><th>Bad OCR risk</th></tr><tr><td>Invoice No.</td><td><code>INV-2291</code></td><td><code>1NV-229I</code></td></tr><tr><td>Amount</td><td><code>AED 7,500</code></td><td><code>AED 7,S00</code></td></tr><tr><td>Vendor</td><td><code>Gulf Supplies LLC</code></td><td><code>GuIf SuppIies LLC</code></td></tr></table></div><p>Bad OCR can break keyword search because exact identifiers become wrong.</p></div>
+    <div class="example-card"><h4>OCR confidence routing</h4><pre class="example-code"><code>{
+  "document_id": "DOC-991",
+  "page": 7,
+  "ocr_confidence": 0.62,
+  "decision": "send_to_human_review_before_indexing"
+}</code></pre><p>Low-confidence pages should not silently enter the vector index because bad text becomes bad embeddings.</p></div>
+  </div>
+
+</section>
+
+<!-- ============ 7. EMBEDDING MODELS ============ -->
+<section class="block" id="s7">
+  <div class="section-head"><span class="idx">07</span><h2>Embedding Models</h2></div>
+  <p class="section-intro">Embeddings are what make "search by meaning" possible instead of just "search by exact word."</p>
+
+  <p>An <strong>embedding model</strong> converts a piece of text into a fixed-length vector of numbers positioned in a high-dimensional space, such that texts with similar meaning land close together in that space. This is what powers semantic search: the system compares vector positions, not literal words.</p>
+
+  <h3>Embedding model vs. reasoning/LLM model</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th></th><th>Embedding model</th><th>Reasoning / LLM model</th></tr>
+      <tr><td>Input → Output</td><td>Text → vector of numbers</td><td>Text → generated text</td></tr>
+      <tr><td>Job</td><td>Represent meaning for comparison</td><td>Reason, synthesize, and write an answer</td></tr>
+      <tr><td>Used at</td><td>Ingestion (once) and query time (once per query)</td><td>Query time, after retrieval</td></tr>
+      <tr><td>Relative cost</td><td>Cheap, fast</td><td>Expensive, slower</td></tr>
+    </table>
+  </div>
+
+  <h3>Popular embedding models</h3>
+  <div class="grid-3">
+    <div class="card"><strong>Commercial / cloud</strong>
+      <ul><li>OpenAI text-embedding-3</li><li>Azure OpenAI embeddings</li><li>AWS Titan Embeddings</li><li>Google Vertex AI embeddings</li><li>Cohere embed models</li></ul>
+    </div>
+    <div class="card"><strong>Open-source</strong>
+      <ul><li>BGE (BAAI General Embedding)</li><li>E5 (Microsoft)</li><li>Instructor models</li><li>Sentence Transformers (all-MiniLM etc.)</li></ul>
+    </div>
+    <div class="card"><strong>Selection criteria</strong>
+      <ul><li>Multilingual coverage</li><li>Vector dimensionality vs. storage cost</li><li>Self-hostable for data residency</li><li>Domain fit (legal, medical, code)</li><li>Latency and throughput</li></ul>
+    </div>
+  </div>
+  <p>For enterprise or government use, the deciding factors are usually: <strong>can it run inside our security boundary</strong>, does it support the required languages, and does its accuracy on domain-specific text justify its cost/latency versus a smaller open-source model.</p>
+
+  <div class="example-block">
+    <h3 class="example-title">Embedding examples and model choices</h3>
+    <div class="example-card">
+      <h4>Semantic similarity example</h4>
+      <pre class="example-code"><code>Text 1: Employees may claim taxi reimbursement for client meetings.
+Text 2: Staff can expense cab rides for customer visits.
+Text 3: Passwords must be changed every 90 days.</code></pre>
+      <p>Text 1 and Text 2 should land close together in vector space because they mean almost the same thing. Text 3 should land far away because it is about cybersecurity, not travel expenses.</p>
+    </div>
+    <div class="table-wrap"><table>
+      <tr><th>Use case</th><th>Embedding model choice</th><th>Reason</th></tr>
+      <tr><td>English HR chatbot</td><td>Small or medium general embedding model</td><td>Low cost and sufficient for simple policy language.</td></tr>
+      <tr><td>Arabic-English government portal</td><td>Strong multilingual embedding model</td><td>Users may ask in Arabic while documents may be Arabic, English, or mixed.</td></tr>
+      <tr><td>Legal contract search</td><td>Domain-accurate or fine-tuned embedding model</td><td>Small wording differences can change legal meaning.</td></tr>
+      <tr><td>Air-gapped classified RAG</td><td>Self-hosted BGE/E5/Sentence Transformer</td><td>Embeddings must be generated inside the security boundary.</td></tr>
+    </table></div>
+  </div>
+
+</section>
+
+<!-- ============ 8. VECTOR SEARCH ============ -->
+<section class="block" id="s8">
+  <div class="section-head"><span class="idx">08</span><h2>Vector Search &amp; Vector Databases</h2></div>
+  <p class="section-intro">How the system actually finds "the closest meaning" among millions of chunks.</p>
+
+  <p><strong>Vector search</strong> finds the stored vectors that are mathematically closest to a query's vector — the underlying mechanism of semantic search.</p>
+
+  <h3>Similarity metrics, in plain terms</h3>
+  <div class="grid-3">
+    <div class="card"><strong>Cosine similarity</strong><p style="margin:8px 0 0;font-size:13.8px;">Measures the <em>angle</em> between two vectors — ignores length, focuses purely on direction/meaning. Most common for text embeddings.</p></div>
+    <div class="card"><strong>Dot product</strong><p style="margin:8px 0 0;font-size:13.8px;">Combines angle and magnitude. Fast to compute; used when vectors are normalized.</p></div>
+    <div class="card"><strong>Euclidean distance</strong><p style="margin:8px 0 0;font-size:13.8px;">Straight-line distance between two points in vector space — smaller distance means more similar.</p></div>
+  </div>
+
+  <h3>Approximate Nearest Neighbor (ANN)</h3>
+  <p>Scanning every vector for an exact match doesn't scale past a few thousand items. <strong>ANN algorithms</strong> (like HNSW or IVF) trade a small amount of accuracy for massive speed gains, making millisecond search possible across millions of vectors.</p>
+
+  <h3>Vector search vs. keyword search</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th></th><th>Keyword search</th><th>Vector search</th></tr>
+      <tr><td>Strength</td><td>Exact terms, codes, names</td><td>Meaning, paraphrase, concepts</td></tr>
+      <tr><td>Weakness</td><td>Misses synonyms</td><td>Can miss exact identifiers</td></tr>
+      <tr><td>Example query</td><td>"invoice #INV-2291"</td><td>"how do refunds work"</td></tr>
+    </table>
+  </div>
+
+  <h3>Hybrid search</h3>
+  <p><strong>Hybrid search</strong> runs both keyword and vector search and merges the results (often via a weighted score or reciprocal rank fusion), giving you the precision of keyword matching plus the recall of semantic matching. Most production RAG systems default to hybrid rather than picking one.</p>
+
+  <div class="callout"><b>When to use which:</b> pure vector search for conceptual/FAQ-style queries; pure keyword search when users search by ID/code/exact term; hybrid as the safe enterprise default, especially for mixed technical + narrative content.</div>
+
+  <div class="example-block">
+    <h3 class="example-title">Vector search and hybrid search examples</h3>
+    <div class="example-card"><h4>Cosine similarity example</h4><p><strong>Query:</strong> “Can I expense a cab?”</p><div class="table-wrap"><table><tr><th>Candidate chunk</th><th>Similarity score</th><th>Decision</th></tr><tr><td>Taxi expenses are reimbursable for client meetings.</td><td>0.91</td><td>Retrieve</td></tr><tr><td>Annual leave is 30 days.</td><td>0.32</td><td>Ignore</td></tr><tr><td>Password must be changed every 90 days.</td><td>0.11</td><td>Ignore</td></tr></table></div></div>
+    <div class="example-card"><h4>Where vector search is weak</h4><p><strong>Query:</strong> “INV-2291.”</p><p>Invoice IDs do not carry semantic meaning. A keyword index is safer for exact identifiers, codes, SKUs, clause numbers, and transaction IDs.</p></div>
+    <div class="example-card"><h4>Production hybrid search</h4><p><strong>Query:</strong> “What is the refund status for invoice INV-2291?”</p><ul><li>Keyword search locks onto <code>INV-2291</code>.</li><li>Vector search finds chunks about refunds, reversals, approvals, and payment status.</li><li>Hybrid ranking combines exact ID precision with semantic recall.</li></ul></div>
+    <div class="example-card"><h4>ANN example</h4><p>A system with 40 million chunks cannot compare the query vector against every vector exactly. HNSW or IVF creates a navigable index so the system searches likely neighborhoods first, returning results quickly with a small accuracy tradeoff.</p></div>
+  </div>
+
+</section>
+
+<!-- ============ 9. RE-RANKING ============ -->
+<section class="block" id="s9">
+  <div class="section-head"><span class="idx">09</span><h2>Re-ranking</h2></div>
+  <p class="section-intro">Retrieval gets you a shortlist fast; re-ranking makes that shortlist actually good.</p>
+
+  <p>Initial retrieval (vector/hybrid search) is optimized for <strong>speed</strong> across a huge index — it returns a broad top-k candidate set (say, top 50). <strong>Re-ranking</strong> then applies a more expensive, more accurate model to that much smaller set to re-order it by true relevance, and only the top few (top-n) go into the prompt.</p>
+
+  <h3>Common re-ranking approaches</h3>
+  <div class="grid-2">
+    <div class="card"><ul>
+      <li><strong>Cross-encoder re-rankers</strong> — jointly score query+chunk pairs for high accuracy</li>
+      <li><strong>Cohere Rerank</strong> — managed re-ranking API</li>
+      <li><strong>BGE re-ranker</strong> — open-source cross-encoder</li>
+    </ul></div>
+    <div class="card"><ul>
+      <li><strong>LLM-based re-ranking</strong> — ask the LLM itself to score/order chunks</li>
+      <li><strong>Metadata-based scoring</strong> — boost by recency, department, document type</li>
+      <li><strong>Hybrid scoring</strong> — combine semantic score + metadata boosts</li>
+    </ul></div>
+  </div>
+
+  <div class="mermaid-card">
+    <div class="mermaid-label">Where re-ranking fits</div>
+    <div class="mermaid">
+flowchart LR
+    Q[Query] --> R1[Initial Retrieval: top-k ~ 20-50]
+    R1 --> RR[Re-ranker: cross-encoder / LLM]
+    RR --> R2[Final Set: top-n ~ 3-8]
+    R2 --> P[Prompt Construction]
+    </div>
+  </div>
+
+  <p><strong>Choosing top-k vs. top-n:</strong> top-k (initial retrieval) is set generously to maximize recall, typically 20–50 candidates. top-n (post-rerank) is kept small, typically 3–8, to fit the context window, control cost, and avoid diluting the LLM's attention with marginal chunks.</p>
+
+  <div class="example-block">
+    <h3 class="example-title">Re-ranking example</h3>
+    <div class="example-card">
+      <h4>User question: “Can I claim taxi expenses for a client visit?”</h4>
+      <div class="grid-2">
+        <div><strong>Initial retrieval top-k</strong><div class="table-wrap"><table><tr><th>Rank</th><th>Chunk</th></tr><tr><td>1</td><td>General travel policy overview</td></tr><tr><td>2</td><td>Hotel reimbursement policy</td></tr><tr><td>3</td><td>Taxi reimbursement policy</td></tr><tr><td>4</td><td>Meal allowance policy</td></tr><tr><td>5</td><td>Client visit approval rules</td></tr></table></div></div>
+        <div><strong>After re-ranking top-n</strong><div class="table-wrap"><table><tr><th>Rank</th><th>Chunk</th></tr><tr><td>1</td><td>Taxi reimbursement policy</td></tr><tr><td>2</td><td>Client visit approval rules</td></tr><tr><td>3</td><td>General travel policy overview</td></tr></table></div></div>
+      </div>
+      <p class="small-note">Retrieval maximizes recall; re-ranking improves precision before prompt construction.</p>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============ 10. REASONING MODEL / LLM ============ -->
+<section class="block" id="s10">
+  <div class="section-head"><span class="idx">10</span><h2>Reasoning Model / LLM</h2></div>
+  <p class="section-intro">The component that turns retrieved facts into a coherent, well-written answer.</p>
+
+  <p>The <strong>reasoning model (LLM)</strong> takes the constructed prompt — instructions, the user's question, and the top retrieved chunks — and generates the final natural-language answer, ideally staying grounded in the provided context rather than its own memorized knowledge.</p>
+
+  <h3>Model family roles, side by side</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Model type</th><th>Job</th></tr>
+      <tr><td>LLM / Reasoning model</td><td>Generates the final answer from context</td></tr>
+      <tr><td>Embedding model</td><td>Represents text as vectors for search</td></tr>
+      <tr><td>Re-ranking model</td><td>Re-scores retrieved chunks for relevance</td></tr>
+      <tr><td>OCR model</td><td>Converts images/scans to text</td></tr>
+    </table>
+  </div>
+
+  <h3>Models by deployment context</h3>
+  <div class="grid-2">
+    <div class="card"><strong>Managed / API</strong>
+      <ul><li>GPT models via Azure OpenAI / OpenAI</li><li>Claude models (Anthropic)</li><li>Gemini models (Google)</li><li>Command R / R+ (Cohere)</li></ul>
+    </div>
+    <div class="card"><strong>Self-hosted / on-premises</strong>
+      <ul><li>Llama models (Meta)</li><li>Mistral / Mixtral</li><li>Qwen</li><li>Falcon</li><li>DeepSeek, where licensing/compliance allow</li></ul>
+    </div>
+  </div>
+
+  <h3>Model selection criteria</h3>
+  <div class="grid-3">
+    <div class="card"><ul><li>Accuracy</li><li>Reasoning ability</li><li>Context window size</li></ul></div>
+    <div class="card"><ul><li>Cost per token</li><li>Latency</li><li>GPU requirements (self-hosted)</li></ul></div>
+    <div class="card"><ul><li>Data privacy / compliance</li><li>Multilingual support</li><li>Fine-tuning support</li></ul></div>
+  </div>
+  <p>For government and highly regulated sectors, <strong>data privacy and compliance usually override raw accuracy</strong> — which is why self-hosted open-weight models (Llama, Mistral, Qwen) on GPU clusters inside a controlled boundary are common, even if a managed API model would score higher on benchmarks.</p>
+
+  <div class="example-block">
+    <h3 class="example-title">Prompt and answer generation examples</h3>
+    <div class="example-card"><h4>Grounded answer prompt</h4><pre class="example-code"><code>System instruction:
+Answer only using the provided context. If the answer is missing, say you do not know.
+
+User question:
+Can I claim taxi expenses for a client meeting?
+
+Retrieved context:
+Travel Policy, Page 4:
+Employees may claim taxi reimbursement up to AED 150 per trip for approved client meetings. Receipts must be submitted within 30 days.</code></pre><p><strong>LLM answer:</strong> “Yes. You can claim taxi expenses for approved client meetings, up to AED 150 per trip. Submit the receipt within 30 days.”</p></div>
+    <div class="example-card"><h4>When context does not contain the answer</h4><p><strong>User question:</strong> “Can I claim helicopter travel?”</p><p><strong>Retrieved context:</strong> Only taxi, metro, hotel, and meal policies.</p><p><strong>Correct answer:</strong> “I do not have enough information in the provided policy excerpts to confirm helicopter travel reimbursement.”</p><p class="small-note">This is better than inventing a rule.</p></div>
+  </div>
+
+</section>
+
+<!-- ============ 11. RABBITMQ ============ -->
+<section class="block" id="s11">
+  <div class="section-head"><span class="idx">11</span><h2>RabbitMQ &amp; Messaging</h2></div>
+  <p class="section-intro">Ingestion is bursty and slow (OCR, chunking, embedding); messaging decouples that from the fast, interactive parts of the system.</p>
+
+  <p><strong>RabbitMQ</strong> is an open-source message broker that lets services communicate asynchronously by publishing and consuming messages through queues, instead of calling each other directly and waiting.</p>
+
+  <h3>Why queues in RAG ingestion</h3>
+  <ul>
+    <li>Document processing (OCR, chunking, embedding) is slow and variable in duration — you don't want the upload API to block on it</li>
+    <li>Large batch uploads create bursts of work that need to be smoothed out over time (buffering)</li>
+    <li>If a processing worker crashes mid-document, the message can be retried instead of losing the job</li>
+    <li>Different stages (OCR → chunk → embed) can scale independently as separate consumers</li>
+  </ul>
+
+  <div class="mermaid-card">
+    <div class="mermaid-label">RabbitMQ in the ingestion pipeline</div>
+    <div class="mermaid">
+flowchart LR
+    API[Upload API] -- publish --> Q1[[Queue: raw-documents]]
+    Q1 --> W1[OCR Worker]
+    W1 -- publish --> Q2[[Queue: parsed-text]]
+    Q2 --> W2[Chunking Worker]
+    W2 -- publish --> Q3[[Queue: chunks]]
+    Q3 --> W3[Embedding Worker]
+    W3 --> VDB[(Vector DB)]
+    </div>
+  </div>
+
+  <h3>RabbitMQ vs. alternatives</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Tool</th><th>Style</th><th>Typical fit</th></tr>
+      <tr><td>RabbitMQ</td><td>Traditional message broker (AMQP)</td><td>On-premises task queues, flexible routing</td></tr>
+      <tr><td>Kafka</td><td>Distributed log / event streaming</td><td>High-throughput event pipelines, replayability</td></tr>
+      <tr><td>Azure Service Bus</td><td>Managed broker</td><td>Azure-native ingestion pipelines</td></tr>
+      <tr><td>AWS SQS</td><td>Managed queue</td><td>AWS-native, simple decoupling</td></tr>
+      <tr><td>Google Pub/Sub</td><td>Managed pub/sub</td><td>GCP-native event fan-out</td></tr>
+      <tr><td>OCI Queue</td><td>Managed queue</td><td>Oracle Cloud-native ingestion</td></tr>
+    </table>
+  </div>
+  <p>RabbitMQ is especially common in <strong>on-premises</strong> RAG builds because it's self-hostable, mature, and doesn't require a hyperscaler subscription.</p>
+
+  <div class="example-block">
+    <h3 class="example-title">RabbitMQ message and queue examples</h3>
+    <div class="example-card"><h4>Large upload job</h4><p><strong>File:</strong> <code>Government_Report_500_pages.pdf</code>. The upload API should return quickly and not wait for OCR and embeddings.</p><pre class="example-code"><code>{
+  "job_id": "JOB-9001",
+  "document_id": "DOC-7781",
+  "file_path": "/storage/reports/Government_Report_500_pages.pdf",
+  "task": "process_document",
+  "priority": "normal"
+}</code></pre></div>
+    <div class="table-wrap"><table><tr><th>Queue</th><th>Example payload</th><th>Consumer</th></tr><tr><td><code>raw-documents</code></td><td>New PDF uploaded</td><td>Parser worker</td></tr><tr><td><code>ocr-required</code></td><td>Scanned pages detected</td><td>OCR worker</td></tr><tr><td><code>parsed-text</code></td><td>Clean extracted text</td><td>Chunking worker</td></tr><tr><td><code>embedding-jobs</code></td><td>Chunks ready for vectors</td><td>Embedding worker</td></tr><tr><td><code>failed-jobs</code></td><td>Retries exhausted</td><td>Manual review / alerting</td></tr></table></div>
+    <div class="example-card"><h4>Retry example</h4><pre class="example-code"><code>{
+  "job_id": "JOB-9001",
+  "page": 120,
+  "error": "OCR timeout",
+  "retry_count": 2,
+  "next_action": "retry_with_backoff"
+}</code></pre><p>If retry count exceeds the limit, the message goes to a dead-letter queue for investigation.</p></div>
+  </div>
+
+</section>
+
+<!-- ============ 12. CLOUD ARCHITECTURES ============ -->
+<section class="block" id="s12">
+  <div class="section-head"><span class="idx">12</span><h2>Cloud-Specific RAG Architectures</h2></div>
+  <p class="section-intro">Same 16 layers from Section 2 — now mapped onto five real environments.</p>
+
+  <h3>A. On-premises RAG architecture</h3>
+  <div class="mermaid-card">
+    <div class="mermaid">
+flowchart TB
+    U[User Portal] --> GW[API Gateway]
+    GW --> IDP[Identity Provider]
+    GW --> STG[(MinIO / NFS Storage)]
+    STG --> PARSE[Document Parser]
+    PARSE --> OCR[Tesseract / PaddleOCR]
+    OCR --> MQ[[RabbitMQ / Kafka]]
+    MQ --> CHUNK[Chunking Service]
+    CHUNK --> EMBGPU[Embedding Model on GPU]
+    EMBGPU --> VDB[(pgvector / Milvus / Weaviate / Qdrant)]
+    EMBGPU --> METADB[(PostgreSQL Metadata DB)]
+    GW --> LLMGPU[LLM on GPU Servers - Llama/Mistral/Qwen]
+    VDB --> LLMGPU
+    METADB --> LLMGPU
+    LLMGPU --> MON[Monitoring / Logging]
+    IDP --> SEC[Security & Access Control]
+    subgraph K8S[Kubernetes / OpenShift + NVIDIA GPUs]
+      CHUNK
+      EMBGPU
+      LLMGPU
+    end
+    </div>
+  </div>
+  <p>Typical stack: <span class="pill">MinIO / NFS</span><span class="pill">PostgreSQL</span><span class="pill">pgvector / Milvus / Qdrant</span><span class="pill">Elasticsearch / OpenSearch</span><span class="pill">Tesseract / PaddleOCR</span><span class="pill">Llama / Mistral / Mixtral / Qwen / Falcon</span><span class="pill">Kubernetes / OpenShift</span><span class="pill">NVIDIA GPUs</span></p>
+
+  <h3>B. Azure RAG architecture</h3>
+  <div class="mermaid-card">
+    <div class="mermaid">
+flowchart TB
+    UI[App Service / AKS / Static Web Apps] --> APIM[API Management / Functions]
+    APIM --> AAD[Microsoft Entra ID]
+    APIM --> BLOB[(Blob Storage / Data Lake)]
+    BLOB --> DI[Azure AI Document Intelligence - OCR]
+    DI --> SB[[Azure Service Bus]]
+    SB --> AOAI_E[Azure OpenAI Embeddings]
+    AOAI_E --> AISEARCH[(Azure AI Search - Vector Index)]
+    APIM --> AOAI_L[Azure OpenAI - LLM]
+    AISEARCH --> AOAI_L
+    AOAI_L --> MON[Azure Monitor / App Insights / Log Analytics]
+    AAD --> KV[Key Vault / Private Link / Managed Identity]
+    </div>
+  </div>
+
+  <h3>C. AWS RAG architecture</h3>
+  <div class="mermaid-card">
+    <div class="mermaid">
+flowchart TB
+    UI[Amplify / ECS / EKS / Lambda] --> AGW[API Gateway]
+    AGW --> COG[Cognito / IAM Identity Center]
+    AGW --> S3[(Amazon S3)]
+    S3 --> TXT[Amazon Textract - OCR]
+    TXT --> SQS[[SQS / Amazon MQ]]
+    SQS --> BED_E[Bedrock Titan Embeddings]
+    BED_E --> OS[(OpenSearch Serverless / Aurora pgvector / Neptune Analytics)]
+    AGW --> BED_L[Bedrock LLM - Claude/Llama/Mistral/Titan/Command]
+    OS --> BED_L
+    BED_L --> MON[CloudWatch / X-Ray / CloudTrail]
+    COG --> SEC[KMS / IAM / VPC Endpoints / Secrets Manager]
+    </div>
+  </div>
+
+  <h3>D. Google Cloud RAG architecture</h3>
+  <div class="mermaid-card">
+    <div class="mermaid">
+flowchart TB
+    UI[Cloud Run / GKE / App Engine] --> APIGW[Apigee / API Gateway / Cloud Functions]
+    APIGW --> IAM[Cloud Identity / IAM]
+    APIGW --> GCS[(Cloud Storage)]
+    GCS --> DOCAI[Document AI / Vision AI - OCR]
+    DOCAI --> PS[[Pub/Sub / Cloud Tasks]]
+    PS --> VE[Vertex AI Embeddings]
+    VE --> VVS[(Vertex AI Vector Search / AlloyDB pgvector / BigQuery Vector Search)]
+    APIGW --> GEM[Gemini on Vertex AI / Model Garden]
+    VVS --> GEM
+    GEM --> MON[Cloud Monitoring / Logging / Trace]
+    IAM --> SEC[Secret Manager / VPC Service Controls / Cloud KMS]
+    </div>
+  </div>
+
+  <h3>E. Oracle Cloud RAG architecture</h3>
+  <div class="mermaid-card">
+    <div class="mermaid">
+flowchart TB
+    UI[OKE / Compute / Functions] --> OAGW[OCI API Gateway]
+    OAGW --> OIAM[OCI IAM]
+    OAGW --> OOS[(OCI Object Storage)]
+    OOS --> ODU[OCI Document Understanding / Vision - OCR]
+    ODU --> OQ[[OCI Queue]]
+    OQ --> GAI_E[OCI Generative AI Embeddings / Cohere]
+    GAI_E --> ADB[(Oracle Database 23ai - AI Vector Search)]
+    OAGW --> GAI_L[OCI Generative AI - Command / Llama]
+    ADB --> GAI_L
+    GAI_L --> MON[OCI Monitoring / Logging Analytics]
+    OIAM --> SEC[Vault / Cloud Guard / Private Endpoints]
+    </div>
+  </div>
+
+  <div class="example-block">
+    <h3 class="example-title">Deployment examples by environment</h3>
+    <div class="grid-2">
+      <div class="example-card"><h4>On-premises classified RAG</h4><p><strong>Scenario:</strong> Defense documents cannot leave the data center.</p><p><strong>Stack:</strong> MinIO, RabbitMQ, Tesseract/PaddleOCR, BGE embeddings, Milvus or pgvector, Llama/Mistral on NVIDIA GPUs, PostgreSQL metadata.</p><p><strong>Why:</strong> Full data control and no public API dependency.</p></div>
+      <div class="example-card"><h4>Azure enterprise RAG</h4><p><strong>Scenario:</strong> Company uses Microsoft 365, SharePoint, Teams, and Entra ID.</p><p><strong>Stack:</strong> Blob Storage, Azure AI Document Intelligence, Service Bus, Azure OpenAI embeddings, Azure AI Search, Azure OpenAI LLM.</p><p><strong>Why:</strong> Strong identity and Microsoft ecosystem integration.</p></div>
+      <div class="example-card"><h4>AWS support chatbot</h4><p><strong>Scenario:</strong> Product manuals are stored in S3 and support agents need answers.</p><p><strong>Stack:</strong> S3, Textract, SQS, Bedrock Titan Embeddings, OpenSearch Serverless or Aurora pgvector, Bedrock LLM.</p><p><strong>Why:</strong> Broad managed-service ecosystem and model choice through Bedrock.</p></div>
+      <div class="example-card"><h4>Google Cloud research assistant</h4><p><strong>Scenario:</strong> Analytics team asks questions over reports, research papers, and BigQuery exports.</p><p><strong>Stack:</strong> Cloud Storage, Document AI, Pub/Sub, Vertex AI embeddings, Vertex AI Vector Search, Gemini.</p><p><strong>Why:</strong> Strong ML and analytics alignment.</p></div>
+      <div class="example-card"><h4>Oracle Cloud banking RAG</h4><p><strong>Scenario:</strong> Bank already stores operational data in Oracle Database.</p><p><strong>Stack:</strong> OCI Object Storage, OCI Document Understanding, OCI Queue, OCI Generative AI embeddings, Oracle Database 23ai Vector Search, OCI Gen AI LLM.</p><p><strong>Why:</strong> DB-native vector search and Oracle ecosystem fit.</p></div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============ 13. COMPARISON TABLE ============ -->
+<section class="block" id="s13">
+  <div class="section-head"><span class="idx">13</span><h2>Comparison Table</h2></div>
+  <p class="section-intro">The same component, five environments — your fast lookup table for interviews.</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Component</th><th>On-Premises</th><th>Azure</th><th>AWS</th><th>Google Cloud</th><th>Oracle Cloud</th></tr>
+      <tr><td>Storage</td><td>MinIO / NFS</td><td>Blob Storage</td><td>S3</td><td>Cloud Storage</td><td>Object Storage</td></tr>
+      <tr><td>OCR</td><td>Tesseract / PaddleOCR</td><td>AI Document Intelligence</td><td>Textract</td><td>Document AI / Vision AI</td><td>Document Understanding / Vision</td></tr>
+      <tr><td>Parser</td><td>Custom (Unstructured, Apache Tika)</td><td>Document Intelligence</td><td>Textract + custom</td><td>Document AI</td><td>Document Understanding</td></tr>
+      <tr><td>Queue</td><td>RabbitMQ / Kafka</td><td>Service Bus</td><td>SQS / Amazon MQ</td><td>Pub/Sub</td><td>OCI Queue</td></tr>
+      <tr><td>Embedding model</td><td>BGE / E5 / Sentence Transformers</td><td>Azure OpenAI embeddings</td><td>Bedrock Titan Embeddings</td><td>Vertex AI embeddings</td><td>OCI Gen AI / Cohere embeddings</td></tr>
+      <tr><td>Vector database</td><td>pgvector / Milvus / Qdrant / Weaviate</td><td>Azure AI Search</td><td>OpenSearch Serverless / Aurora pgvector</td><td>Vertex AI Vector Search / AlloyDB</td><td>Oracle DB 23ai AI Vector Search</td></tr>
+      <tr><td>LLM / reasoning model</td><td>Llama / Mistral / Mixtral / Qwen</td><td>Azure OpenAI (GPT)</td><td>Bedrock (Claude, Llama, Titan)</td><td>Gemini / Model Garden</td><td>OCI Gen AI (Command, Llama)</td></tr>
+      <tr><td>Metadata DB</td><td>PostgreSQL</td><td>Azure SQL / Cosmos DB</td><td>DynamoDB / RDS</td><td>Firestore / Cloud SQL</td><td>Autonomous Database</td></tr>
+      <tr><td>Monitoring</td><td>Prometheus / Grafana</td><td>Azure Monitor / App Insights</td><td>CloudWatch / X-Ray</td><td>Cloud Monitoring / Trace</td><td>OCI Monitoring / Logging Analytics</td></tr>
+      <tr><td>Security</td><td>Vault, RBAC, network policies</td><td>Key Vault, Entra ID, Private Link</td><td>KMS, IAM, VPC endpoints</td><td>Cloud KMS, VPC Service Controls</td><td>Vault, Cloud Guard</td></tr>
+      <tr><td>Best use case</td><td>Air-gapped / classified / full data control</td><td>Microsoft-centric enterprises</td><td>Broadest managed-service ecosystem</td><td>Strong ML/data analytics fit</td><td>Oracle DB-centric enterprises</td></tr>
+      <tr><td>Pros</td><td>Full control, no data egress</td><td>Deep Microsoft 365/Entra integration</td><td>Largest model choice via Bedrock</td><td>Best-in-class embeddings/Gemini reasoning</td><td>DB-native vector search, strong DB tooling</td></tr>
+      <tr><td>Cons</td><td>High ops burden, GPU capex</td><td>Can lock into Microsoft stack</td><td>Complexity across many services</td><td>Smaller enterprise ecosystem than AWS/Azure</td><td>Smaller AI ecosystem/model catalog</td></tr>
+    </table>
+  </div>
+
+  <div class="example-block">
+    <h3 class="example-title">How to choose using the comparison table</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Situation</th><th>Recommended environment</th><th>Reason</th></tr>
+      <tr><td>Classified or air-gapped documents</td><td>On-premises</td><td>No data egress; self-hosted OCR, embeddings, vector DB, and LLM.</td></tr>
+      <tr><td>Company runs Microsoft 365 and Entra ID</td><td>Azure</td><td>Native identity integration and Azure OpenAI/Azure AI Search fit.</td></tr>
+      <tr><td>Documents already live in S3</td><td>AWS</td><td>S3, Textract, SQS, Bedrock, and OpenSearch/Aurora work naturally together.</td></tr>
+      <tr><td>Data science team uses BigQuery and Vertex AI</td><td>Google Cloud</td><td>Strong analytics and ML workflow integration.</td></tr>
+      <tr><td>Core enterprise data is in Oracle Database</td><td>Oracle Cloud</td><td>Oracle DB 23ai vector search minimizes data movement.</td></tr>
+    </table></div>
+  </div>
+
+</section>
+
+<!-- ============ 14. DIAGRAMS INDEX ============ -->
+<section class="block" id="s14">
+  <div class="section-head"><span class="idx">14</span><h2>Visual Diagrams — Index</h2></div>
+  <p class="section-intro">All nine requested diagrams are embedded above, in context. Quick index for revision:</p>
+  <div class="grid-3">
+    <div class="card">1. Generic RAG architecture — <a href="#s2">Section 2</a></div>
+    <div class="card">2. Ingestion pipeline — <a href="#s3">Section 3A</a></div>
+    <div class="card">3. Query-time pipeline — <a href="#s3">Section 3B</a></div>
+    <div class="card">4. On-premises architecture — <a href="#s12">Section 12A</a></div>
+    <div class="card">5. Azure architecture — <a href="#s12">Section 12B</a></div>
+    <div class="card">6. AWS architecture — <a href="#s12">Section 12C</a></div>
+    <div class="card">7. Google Cloud architecture — <a href="#s12">Section 12D</a></div>
+    <div class="card">8. Oracle Cloud architecture — <a href="#s12">Section 12E</a></div>
+    <div class="card">9. Comparison table — <a href="#s13">Section 13</a></div>
+  </div>
+
+  <h3>Equivalent services across clouds</h3>
+  <div class="mermaid-card">
+    <div class="mermaid">
+flowchart LR
+    subgraph L1[Object Storage]
+      direction TB
+      s1[On-Prem: MinIO/NFS]:::a --- s2[Azure: Blob]:::b --- s3[AWS: S3]:::c --- s4[GCP: Cloud Storage]:::d --- s5[OCI: Object Storage]:::e
+    end
+    subgraph L2[Vector Database]
+      direction TB
+      v1[On-Prem: pgvector/Milvus]:::a --- v2[Azure: AI Search]:::b --- v3[AWS: OpenSearch/Aurora]:::c --- v4[GCP: Vertex Vector Search]:::d --- v5[OCI: DB 23ai Vector Search]:::e
+    end
+    subgraph L3[LLM]
+      direction TB
+      m1[On-Prem: Llama/Mistral]:::a --- m2[Azure: OpenAI GPT]:::b --- m3[AWS: Bedrock]:::c --- m4[GCP: Gemini]:::d --- m5[OCI: Gen AI]:::e
+    end
+    classDef a fill:#16213E,color:#fff,stroke:#16213E;
+    classDef b fill:#0078D4,color:#fff,stroke:#0078D4;
+    classDef c fill:#FF9900,color:#111,stroke:#FF9900;
+    classDef d fill:#4285F4,color:#fff,stroke:#4285F4;
+    classDef e fill:#C74634,color:#fff,stroke:#C74634;
+    </div>
+  </div>
+
+  <div class="example-block">
+    <h3 class="example-title">How to explain the diagrams in interviews</h3>
+    <div class="grid-3">
+      <div class="example-card"><h4>Generic architecture diagram</h4><p>Use it to show that RAG has ingestion, retrieval, generation, metadata, security, and monitoring layers.</p></div>
+      <div class="example-card"><h4>Ingestion pipeline diagram</h4><p>Explain it as a write-heavy background workflow: upload, validate, parse, OCR, chunk, embed, and index.</p></div>
+      <div class="example-card"><h4>Query-time diagram</h4><p>Explain it as a low-latency workflow: rewrite question, retrieve, re-rank, prompt, generate, cite.</p></div>
+      <div class="example-card"><h4>Cloud diagrams</h4><p>Say the pattern stays the same but service names change: S3 vs Blob vs Cloud Storage, Bedrock vs Azure OpenAI vs Gemini.</p></div>
+      <div class="example-card"><h4>Comparison table</h4><p>Use it for decision-making: security, cloud fit, model choice, vector DB, and operational burden.</p></div>
+      <div class="example-card"><h4>Equivalent services diagram</h4><p>Use it to show portability: each cloud has an object store, OCR service, queue, embedding model, vector index, and LLM.</p></div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============ 15. INTERVIEW Q&A ============ -->
+<section class="block" id="s15">
+  <div class="section-head"><span class="idx">15</span><h2>Interview Preparation</h2></div>
+  <p class="section-intro">Click each question to reveal a tight, interview-ready answer. Practice saying these out loud in under 30 seconds each.</p>
+
+  <details class="qa"><summary>What is RAG?</summary><div class="qa-body"><p>RAG is an architecture that grounds an LLM's answers in external documents by retrieving relevant content at query time and injecting it into the prompt — instead of relying only on what the model memorized during training.</p></div></details>
+
+  <details class="qa"><summary>Why do we need RAG?</summary><div class="qa-body"><p>To reduce hallucination, keep answers current without retraining, ground responses in private/internal data the model never saw, and provide traceable citations — all at a fraction of the cost of fine-tuning.</p></div></details>
+
+  <details class="qa"><summary>What is indexing?</summary><div class="qa-body"><p>Indexing is pre-organizing content — text, chunks, metadata, embeddings — into a structure optimized for fast lookup, so queries don't require scanning every document.</p></div></details>
+
+  <details class="qa"><summary>Why do we need indexing?</summary><div class="qa-body"><p>Without an index, every query would require a full scan of all documents, which doesn't scale past a small collection. Indexing trades storage and pre-processing time for near-instant retrieval.</p></div></details>
+
+  <details class="qa"><summary>What is chunking?</summary><div class="qa-body"><p>Splitting a document into smaller, retrievable pieces so each unit is small enough to be specific and fits model/embedding input limits, but large enough to still carry standalone meaning.</p></div></details>
+
+  <details class="qa"><summary>How do you decide chunk size?</summary><div class="qa-body"><p>Balance document type, embedding/context window limits, retrieval precision, answer accuracy, latency, and cost. Start around 300–800 tokens with 10–20% overlap, then tune based on retrieval evaluation results for the specific domain.</p></div></details>
+
+  <details class="qa"><summary>What is OCR?</summary><div class="qa-body"><p>Optical Character Recognition — converts images of text (scans, photos, screenshots) into machine-readable text so it can be chunked and embedded like any other document.</p></div></details>
+
+  <details class="qa"><summary>Why is OCR needed in RAG?</summary><div class="qa-body"><p>Because a large share of enterprise/government content exists as scans or images with no underlying text layer; without OCR that content is completely invisible to the retrieval system.</p></div></details>
+
+  <details class="qa"><summary>What is an embedding model?</summary><div class="qa-body"><p>A model that converts text into a numeric vector positioned so that texts with similar meaning are close together in vector space — the mechanism behind semantic search.</p></div></details>
+
+  <details class="qa"><summary>Why do we need embeddings?</summary><div class="qa-body"><p>They let the system match queries to content by meaning rather than exact words, so paraphrased or conceptually related questions still retrieve the right chunks.</p></div></details>
+
+  <details class="qa"><summary>What is vector search?</summary><div class="qa-body"><p>Finding the stored vectors mathematically closest to a query vector — typically using cosine similarity — often accelerated with approximate nearest neighbor algorithms for scale.</p></div></details>
+
+  <details class="qa"><summary>Why do we need vector search?</summary><div class="qa-body"><p>Keyword search alone misses synonyms and paraphrasing. Vector search retrieves by meaning, which is essential for natural-language questions over large document sets.</p></div></details>
+
+  <details class="qa"><summary>What is re-ranking?</summary><div class="qa-body"><p>A second, more accurate scoring pass over the initial retrieval candidates, applied because fast retrieval methods trade some accuracy for speed at scale.</p></div></details>
+
+  <details class="qa"><summary>How does re-ranking work?</summary><div class="qa-body"><p>Retrieval returns a broad top-k candidate set; a cross-encoder or LLM-based re-ranker scores each candidate more precisely against the query; only the top-n survivors go into the final prompt.</p></div></details>
+
+  <details class="qa"><summary>What is a reasoning model?</summary><div class="qa-body"><p>The LLM component that takes the assembled prompt — instructions plus retrieved context — and generates the final coherent, grounded answer.</p></div></details>
+
+  <details class="qa"><summary>Why do we need a reasoning model?</summary><div class="qa-body"><p>Retrieval only finds relevant raw text; it doesn't synthesize, compare, or explain. The reasoning model turns retrieved facts into a coherent, natural-language answer to the user's actual question.</p></div></details>
+
+  <details class="qa"><summary>What is RabbitMQ?</summary><div class="qa-body"><p>An open-source message broker that enables asynchronous communication between services via queues, commonly used to decouple slow document-processing stages from the fast upload API.</p></div></details>
+
+  <details class="qa"><summary>Why do we need queues in RAG?</summary><div class="qa-body"><p>Ingestion steps like OCR, chunking, and embedding are slow and bursty. Queues buffer that work, allow independent scaling per stage, and support retries if a worker fails.</p></div></details>
+
+  <details class="qa"><summary>What happens when the same document is uploaded again?</summary><div class="qa-body"><p>A content hash is computed and compared to existing records. If unchanged, it's treated as a duplicate and skipped. If changed, it's versioned and only the affected chunks are re-embedded and re-indexed.</p></div></details>
+
+  <details class="qa"><summary>How do you design a RAG pipeline?</summary><div class="qa-body"><p>Separate ingestion (parse → OCR → clean → chunk → embed → index) from query-time (rewrite → retrieve → re-rank → prompt → generate → cite). Design each layer for its own scaling and latency profile, add metadata for access control, and instrument logging/feedback throughout.</p></div></details>
+
+  <details class="qa"><summary>How does RAG architecture differ between on-premises and cloud?</summary><div class="qa-body"><p>On-premises trades convenience for full data control — self-hosted OCR, vector DB, and LLM on owned GPUs, with more operational overhead. Cloud swaps those for managed equivalents (Document Intelligence/Textract, Azure AI Search/Bedrock/Vertex, managed LLMs), reducing ops burden but introducing data-residency and vendor considerations.</p></div></details>
+
+  <details class="qa"><summary>How would you design RAG for government or highly secure environments?</summary><div class="qa-body"><p>Keep everything inside a controlled network boundary: self-hosted or sovereign-cloud OCR, embedding, vector DB, and open-weight LLM on GPUs; strict RBAC and document-level access control tied through metadata; full audit logging; encryption at rest and in transit; and no data egress to public model APIs.</p></div></details>
+
+  <div class="example-block">
+    <h3 class="example-title">Interview scenario examples</h3>
+    <div class="example-card"><h4>Scenario 1: The interviewer asks how you handle scanned PDFs</h4><p><strong>Answer:</strong> “First I detect whether the PDF has a text layer. If it does, I parse text directly. If it does not, I route pages to OCR, store OCR confidence and page metadata, then clean, chunk, embed, and index. Low-confidence pages go to review so bad OCR does not poison embeddings.”</p></div>
+    <div class="example-card"><h4>Scenario 2: The interviewer asks keyword vs vector search</h4><p><strong>Answer:</strong> “Keyword search is best for exact identifiers like invoice numbers, policy IDs, product codes, and clause numbers. Vector search is best for paraphrased natural-language questions. In production I usually use hybrid search, then re-rank the merged candidates.”</p></div>
+    <div class="example-card"><h4>Scenario 3: The interviewer asks about secure government RAG</h4><p><strong>Answer:</strong> “I would keep OCR, embeddings, vector DB, metadata store, and LLM inference inside the controlled boundary. I would enforce document-level access control through metadata filters at retrieval time, add audit logs, encrypt data at rest and transit, and avoid public model APIs unless approved by policy.”</p></div>
+  </div>
+
+</section>
+
+<!-- ============ 16. BEST PRACTICES ============ -->
+<section class="block" id="s16">
+  <div class="section-head"><span class="idx">16</span><h2>Best Practices</h2></div>
+  <div class="grid-2">
+    <div class="card"><strong>Chunk size selection</strong><p>Start with domain-appropriate defaults (Section 5), then tune using retrieval evaluation — not intuition alone.</p></div>
+    <div class="card"><strong>Metadata design</strong><p>Capture source, owner, sensitivity tag, date, and section/page upfront; retrofitting metadata later is expensive.</p></div>
+    <div class="card"><strong>Hybrid search</strong><p>Default to hybrid (vector + keyword) unless you have strong evidence one alone suffices for your query patterns.</p></div>
+    <div class="card"><strong>Re-ranking</strong><p>Always re-rank when top-k retrieval exceeds ~10 candidates; skip it only for very small, low-stakes indexes.</p></div>
+    <div class="card"><strong>OCR quality control</strong><p>Track OCR confidence scores; route low-confidence pages to human review rather than silently indexing bad text.</p></div>
+    <div class="card"><strong>Document versioning</strong><p>Never overwrite embeddings in place; version documents so answers can be traced to the exact version in effect at query time.</p></div>
+    <div class="card"><strong>Duplicate detection</strong><p>Hash content on upload (not just filename) to catch true duplicates and avoid redundant storage/embedding cost.</p></div>
+    <div class="card"><strong>Access control</strong><p>Enforce permissions at retrieval time using metadata filters, not just at the UI layer — never let a query return chunks the user isn't authorized to see.</p></div>
+    <div class="card"><strong>Secure / private RAG</strong><p>Keep embeddings and LLM inference inside your security boundary for sensitive data; avoid sending regulated content to public APIs without a data processing agreement.</p></div>
+    <div class="card"><strong>Cost optimization</strong><p>Cache frequent query embeddings, right-size top-k/top-n, and use smaller embedding models where domain accuracy allows.</p></div>
+    <div class="card"><strong>Latency optimization</strong><p>Use ANN indexes, keep re-ranking sets small, and consider streaming the LLM's response back to the user.</p></div>
+    <div class="card"><strong>Evaluation and testing</strong><p>Continuously measure retrieval precision/recall and answer faithfulness against a labeled test set — RAG quality drifts as documents and query patterns evolve.</p></div>
+  </div>
+
+  <div class="example-block">
+    <h3 class="example-title">Best-practice examples and anti-patterns</h3>
+    <div class="bad-good">
+      <div class="example-card bad"><h4>Bad: UI-only security</h4><p>The UI hides confidential documents, but retrieval can still return confidential chunks if the user asks the right question.</p></div>
+      <div class="example-card good"><h4>Good: retrieval-time security</h4><p>Every vector search includes metadata filters such as <code>tenant_id</code>, <code>department</code>, <code>classification</code>, and <code>allowed_roles</code>.</p></div>
+      <div class="example-card bad"><h4>Bad: overwrite vectors in place</h4><p>Old answers cannot be traced because document versions are lost.</p></div>
+      <div class="example-card good"><h4>Good: version every document</h4><p>Store <code>document_id</code>, <code>version</code>, <code>chunk_id</code>, <code>page</code>, and <code>indexed_at</code> with every chunk.</p></div>
+      <div class="example-card bad"><h4>Bad: index low-quality OCR blindly</h4><p>Misread invoice numbers and names pollute the index.</p></div>
+      <div class="example-card good"><h4>Good: OCR confidence thresholds</h4><p>Pages below the confidence threshold are reviewed or reprocessed with deskew/denoise before indexing.</p></div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============ 17. CHEAT SHEET ============ -->
+<section class="block" id="s17">
+  <div class="section-head"><span class="idx">17</span><h2>Final Summary Cheat Sheet</h2></div>
+  <div class="cheat">
+    <h2>One page. Everything you need before you walk in.</h2>
+    <div class="grid-3">
+      <div class="cheat-card"><h4>Two Pipelines</h4><ul>
+        <li>Ingestion: parse → OCR → clean → chunk → embed → index</li>
+        <li>Query-time: rewrite → retrieve → re-rank → prompt → generate → cite</li>
+      </ul></div>
+      <div class="cheat-card"><h4>Five Core Layers</h4><ul>
+        <li>Chunking — how content is segmented</li>
+        <li>Embedding — text → vector</li>
+        <li>Vector DB — fast similarity search</li>
+        <li>Re-ranking — precision pass on top-k</li>
+        <li>LLM — synthesizes the final answer</li>
+      </ul></div>
+      <div class="cheat-card"><h4>Cloud Cheat Codes</h4><ul>
+        <li>Azure → AI Search + Azure OpenAI</li>
+        <li>AWS → Bedrock + OpenSearch/Aurora</li>
+        <li>GCP → Vertex AI + Gemini</li>
+        <li>OCI → DB 23ai Vector Search + Gen AI</li>
+        <li>On-prem → pgvector/Milvus + Llama/Mistral</li>
+      </ul></div>
+      <div class="cheat-card"><h4>Numbers to remember</h4><ul>
+        <li>Chunk size: 300–800 tokens typical</li>
+        <li>Overlap: 10–20%</li>
+        <li>Retrieval top-k: 20–50</li>
+        <li>Post-rerank top-n: 3–8</li>
+      </ul></div>
+      <div class="cheat-card"><h4>Security defaults</h4><ul>
+        <li>Filter retrieval by permissions, not just UI</li>
+        <li>Hash-based dedup on upload</li>
+        <li>Version, never overwrite</li>
+        <li>Self-host for sensitive/gov data</li>
+      </ul></div>
+      <div class="cheat-card"><h4>Interview one-liners</h4><ul>
+        <li>"RAG turns a closed-book model into an open-book one."</li>
+        <li>"Retrieval optimizes for recall; re-ranking optimizes for precision."</li>
+        <li>"Metadata is what makes access control and citations possible."</li>
+      </ul></div>
+    </div>
+  </div>
+  <div class="footer-note">RAG Field Guide — architecture and interview reference. Diagrams rendered with Mermaid.</div>
+
+  <div class="example-block">
+    <h3 class="example-title">Cheat sheet examples to memorize</h3>
+    <div class="grid-3">
+      <div class="example-card"><h4>PDF without image</h4><p>Parse text directly, skip OCR, chunk by headings, embed, and index.</p></div>
+      <div class="example-card"><h4>PDF with image</h4><p>Detect missing text layer, OCR pages, validate confidence, clean text, chunk, embed, and index.</p></div>
+      <div class="example-card"><h4>Keyword indexing</h4><p>Best for <code>INV-2291</code>, <code>HR-2026-05</code>, SKUs, names, dates, and clause numbers.</p></div>
+      <div class="example-card"><h4>Vector indexing</h4><p>Best for “Can I expense a cab?” matching “taxi reimbursement for client meetings.”</p></div>
+      <div class="example-card"><h4>Hybrid search</h4><p>Use keyword for precision plus vector for semantic recall, then re-rank.</p></div>
+      <div class="example-card"><h4>Secure RAG</h4><p>Filter by metadata at retrieval time, version documents, audit all answers, and keep sensitive inference inside the boundary.</p></div>
+    </div>
+  </div>
+
+</section>
+
+</main>
+</div>
+
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: 'base', themeVariables: {
+    primaryColor: '#EEF0FF',
+    primaryTextColor: '#182233',
+    primaryBorderColor: '#6366F1',
+    lineColor: '#8B96A8',
+    secondaryColor: '#FFF8EC',
+    tertiaryColor: '#F7F7F4',
+    fontFamily: 'Inter, sans-serif'
+  }});
+</script>
+</body>
+</html>

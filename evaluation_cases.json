@@ -1,0 +1,79 @@
+[
+  {
+    "question": "Explain the RAG pipeline flow.",
+    "expected_sections": [
+      "RAG Pipeline Flow",
+      "Query-time diagram",
+      "Ingestion pipeline diagram"
+    ],
+    "expected_keywords": [
+      "ingestion",
+      "query-time",
+      "chunking",
+      "embedding",
+      "retrieval",
+      "prompt",
+      "generation"
+    ]
+  },
+  {
+    "question": "Which part of it happens only once?",
+    "expected_sections": [
+      "RAG Pipeline Flow",
+      "A. Document ingestion pipeline",
+      "Ingestion pipeline diagram"
+    ],
+    "expected_keywords": [
+      "document ingestion",
+      "once",
+      "query-time"
+    ]
+  },
+  {
+    "question": "Explain the second one in more detail.",
+    "expected_sections": [
+      "Query-time diagram",
+      "RAG Pipeline Flow"
+    ],
+    "expected_keywords": [
+      "query",
+      "embedding",
+      "vector search",
+      "keyword search",
+      "hybrid",
+      "re-ranking",
+      "prompt",
+      "LLM",
+      "citation"
+    ]
+  },
+  {
+    "question": "Why is OCR not always required?",
+    "expected_sections": [
+      "OCR in RAG",
+      "PDF without image: OCR skipped",
+      "PDF with image: OCR required"
+    ],
+    "expected_keywords": [
+      "scanned",
+      "image",
+      "selectable text",
+      "OCR",
+      "text layer"
+    ]
+  },
+  {
+    "question": "What is the difference between embedding and indexing?",
+    "expected_sections": [
+      "Embedding Models",
+      "What Is Indexing?"
+    ],
+    "expected_keywords": [
+      "vector",
+      "embedding",
+      "index",
+      "store",
+      "search"
+    ]
+  }
+]
