@@ -1,0 +1,4 @@
+image: { tag: dev }
+secret: { createDevelopmentPlaceholder: true, optional: true }
+ingress: { enabled: false }
+hpa: { enabled: false }

@@ -1,0 +1,23 @@
+nameOverride: ""
+# The RAG chart defaults to this stable in-cluster service DNS name.
+fullnameOverride: ollama
+image: { repository: ollama/ollama, tag: "0.6.0", pullPolicy: IfNotPresent }
+replicaCount: 1
+deployment: { revisionHistoryLimit: 2, terminationGracePeriodSeconds: 120, strategy: { type: Recreate } }
+serviceAccount: { create: true, name: "" }
+persistence: { existingClaim: "", size: 100Gi, storageClass: "", accessModes: [ReadWriteOnce] }
+service: { type: ClusterIP, port: 11434 }
+resources: { requests: { cpu: "2", memory: 8Gi }, limits: { cpu: "4", memory: 16Gi } }
+podSecurityContext: { runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000, fsGroup: 1000, seccompProfile: { type: RuntimeDefault } }
+securityContext: { privileged: false, allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: [ALL] } }
+nodeSelector: {}
+tolerations: []
+affinity: {}
+temporaryStorage: { sizeLimit: 2Gi }
+probes:
+  startup: { periodSeconds: 10, failureThreshold: 30 }
+  readiness: { periodSeconds: 10 }
+  liveness: { periodSeconds: 30 }
+networkPolicy:
+  enabled: true
+  ragAppPodLabels: { app.kubernetes.io/name: rag-platform }

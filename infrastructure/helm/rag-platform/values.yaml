@@ -1,0 +1,52 @@
+nameOverride: ""
+fullnameOverride: ""
+namespace:
+  create: false
+  labels: {}
+image: { repository: local-rag-platform, tag: phase2, pullPolicy: IfNotPresent }
+replicaCount: 1
+deployment:
+  revisionHistoryLimit: 3
+  progressDeadlineSeconds: 600
+  minReadySeconds: 10
+  terminationGracePeriodSeconds: 30
+  strategy: { type: RollingUpdate, rollingUpdate: { maxUnavailable: 0, maxSurge: 1 } }
+commonLabels: {}
+commonAnnotations: {}
+serviceAccount: { create: true, name: "", annotations: {}, automount: false }
+rbac: { create: true }
+config:
+  chromaPath: /app/data/chroma_db
+  documentsPath: /app/documents/source
+  evaluationFile: /app/evaluation/evaluation_cases.json
+  collectionName: rag_docs
+  llmModel: qwen2.5:3b
+  embeddingModel: nomic-embed-text
+  ollamaHost: http://ollama.rag-platform.svc.cluster.local:11434
+  streamlit: { address: 0.0.0.0, port: "8501", headless: "true" }
+secret: { name: rag-app-secrets, optional: true, createDevelopmentPlaceholder: false, annotations: {} }
+persistence: { enabled: true, existingClaim: "", size: 20Gi, storageClass: "", accessModes: [ReadWriteOnce] }
+service: { type: ClusterIP, port: 80, annotations: {} }
+ingress: { enabled: false, className: "", annotations: {}, hosts: [], tls: [] }
+resources: { requests: { cpu: 500m, memory: 1Gi }, limits: { cpu: "2", memory: 4Gi } }
+podSecurityContext: { runAsNonRoot: true, runAsUser: 999, runAsGroup: 999, fsGroup: 999, fsGroupChangePolicy: OnRootMismatch, seccompProfile: { type: RuntimeDefault } }
+securityContext: { privileged: false, allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: [ALL] } }
+probes:
+  startup: { path: /_stcore/health, periodSeconds: 5, timeoutSeconds: 3, failureThreshold: 24 }
+  readiness: { path: /_stcore/health, periodSeconds: 10, timeoutSeconds: 3, failureThreshold: 3 }
+  liveness: { path: /_stcore/health, periodSeconds: 20, timeoutSeconds: 3, failureThreshold: 3 }
+temporaryStorage: { sizeLimit: 1Gi }
+nodeSelector: {}
+tolerations: []
+affinity: { podAntiAffinity: { preferredDuringSchedulingIgnoredDuringExecution: [{ weight: 100, podAffinityTerm: { topologyKey: kubernetes.io/hostname, labelSelector: { matchLabels: {} } } }] } }
+topologySpread: { enabled: true, maxSkew: 1, topologyKey: kubernetes.io/hostname, whenUnsatisfiable: DoNotSchedule }
+networkPolicy: { enabled: true, ingressNamespaceLabels: { rag-platform.io/network-role: ingress }, ingressPodLabels: { app.kubernetes.io/component: ingress-controller }, monitoringNamespaceLabels: { rag-platform.io/network-role: monitoring }, monitoringPodLabels: { app.kubernetes.io/name: prometheus }, dnsNamespaceLabels: { kubernetes.io/metadata.name: kube-system }, dnsPodLabels: { k8s-app: kube-dns }, ollamaPodLabels: { app.kubernetes.io/name: ollama } }
+hpa:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  averageCPUUtilization: 70
+  behavior:
+    scaleUp: { stabilizationWindowSeconds: 0, selectPolicy: Max, policies: [{ type: Percent, value: 100, periodSeconds: 60 }] }
+    scaleDown: { stabilizationWindowSeconds: 300, selectPolicy: Max, policies: [{ type: Percent, value: 50, periodSeconds: 60 }] }
+pdb: { enabled: true, minAvailable: 1 }

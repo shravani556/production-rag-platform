@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rag-app-config
+  namespace: rag-platform
+  labels:
+    app.kubernetes.io/name: rag-app
+    app.kubernetes.io/instance: rag-platform
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: production-rag-platform
+data:
+  RAG_CHROMA_PATH: /app/data/chroma_db
+  RAG_DOCUMENTS_PATH: /app/documents/source
+  RAG_EVALUATION_FILE: /app/evaluation/evaluation_cases.json
+  RAG_COLLECTION_NAME: rag_docs
+  RAG_LLM_MODEL: qwen2.5:3b
+  RAG_EMBEDDING_MODEL: nomic-embed-text
+  OLLAMA_HOST: http://ollama.rag-platform.svc.cluster.local:11434
+  STREAMLIT_SERVER_ADDRESS: 0.0.0.0
+  STREAMLIT_SERVER_PORT: "8501"
+  STREAMLIT_SERVER_HEADLESS: "true"
+  HOME: /tmp
+  XDG_CACHE_HOME: /tmp/.cache

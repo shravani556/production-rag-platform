@@ -1,0 +1,39 @@
+name: Terraform Validation
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  terraform:
+    name: Format and validate Terraform
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Check formatting and validate configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! find infrastructure -name '*.tf' -print -quit | grep -q .; then
+            echo 'No Terraform configuration is present; validation will run automatically when .tf files are added.'
+            exit 0
+          fi
+          terraform fmt -check -recursive infrastructure
+          while IFS= read -r -d '' directory; do
+            terraform -chdir="$directory" init -backend=false -input=false
+            terraform -chdir="$directory" validate
+          done < <(find infrastructure -name '*.tf' -printf '%h\0' | sort -zu)

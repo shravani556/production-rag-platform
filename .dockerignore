@@ -1,0 +1,15 @@
+.git
+.github
+__pycache__/
+*.py[cod]
+.env
+.venv/
+venv/
+*.tar
+data/
+documents/
+evaluation/
+data/ollama/
+infrastructure/
+scripts/
+tests/

@@ -1,0 +1,44 @@
+name: Docker Build
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-images:
+    name: Build local images without push
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build rag-platform image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: rag-platform:ci-${{ github.sha }}
+          cache-from: type=gha,scope=rag-platform
+          cache-to: type=gha,mode=max,scope=rag-platform
+
+      - name: Build Ollama image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infrastructure/docker/ollama.Dockerfile
+          push: false
+          load: true
+          tags: ollama:ci-${{ github.sha }}
+          cache-from: type=gha,scope=ollama
+          cache-to: type=gha,mode=max,scope=ollama

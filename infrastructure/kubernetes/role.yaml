@@ -1,0 +1,11 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: rag-app
+  namespace: rag-platform
+  labels:
+    app.kubernetes.io/name: rag-app
+    app.kubernetes.io/instance: rag-platform
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: production-rag-platform
+rules: []
