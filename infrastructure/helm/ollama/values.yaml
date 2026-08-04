@@ -1,7 +1,7 @@
 nameOverride: ""
 # The RAG chart defaults to this stable in-cluster service DNS name.
 fullnameOverride: ollama
-image: { repository: ollama/ollama, tag: "0.6.0", pullPolicy: IfNotPresent }
+image: { repository: ollama/ollama, tag: "0.32.3", pullPolicy: IfNotPresent }
 replicaCount: 1
 deployment: { revisionHistoryLimit: 2, terminationGracePeriodSeconds: 120, strategy: { type: Recreate } }
 serviceAccount: { create: true, name: "" }
