@@ -14,6 +14,19 @@ deployment:
 commonLabels: {}
 commonAnnotations: {}
 serviceAccount: { create: true, name: "", annotations: {}, automount: false }
+vaultIntegration:
+  # Foundation only: no Vault component, authentication, secret retrieval, or pod mutation is enabled.
+  enabled: false
+  agentInjector: { enabled: false, podAnnotations: {} }
+  externalSecretsOperator: { enabled: false, secretStoreReference: "", externalSecretReference: "" }
+  secretsStoreCsi: { enabled: false, providerReference: "", secretProviderClassReference: "" }
+  authentication: { enabled: false, serviceAccountAnnotations: {}, roleReference: "" }
+observability:
+  # Foundation only: this chart exposes no metrics endpoint or tracing exporter in Phase 9.
+  enabled: false
+  metrics: { enabled: false, path: "/metrics", portName: "metrics", serviceMonitorReference: "", podMonitorReference: "" }
+  tracing: { enabled: false, otelCollectorReference: "", jaegerReference: "", tempoReference: "" }
+  logging: { enabled: false, lokiReference: "" }
 rbac: { create: true }
 config:
   chromaPath: /app/data/chroma_db

@@ -1,0 +1,15 @@
+# Phase 9 reference-only Kubernetes placeholders.
+#
+# No Kubernetes object is defined in this file: it creates no ServiceMonitor,
+# PodMonitor, PrometheusRule, ConfigMap, datasource, CRD, workload, service, or
+# namespace. Future approved manifests may use the following contracts:
+#
+# ServiceMonitor: scrape the approved application metrics endpoint.
+# PodMonitor: scrape a pod endpoint only where Service discovery is unsuitable.
+# PrometheusRule: define reviewed alert expressions and runbook annotations.
+# Grafana dashboard ConfigMap: carry a versioned dashboard JSON reference.
+# Loki datasource ConfigMap: carry the approved Loki datasource reference.
+#
+# Implementing any item requires the corresponding operator/CRD, RBAC,
+# namespace isolation, retention, storage, alert-routing, and deployment
+# approval in a later phase.

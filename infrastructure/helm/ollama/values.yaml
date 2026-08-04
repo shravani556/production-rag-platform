@@ -4,7 +4,14 @@ fullnameOverride: ollama
 image: { repository: ollama/ollama, tag: "0.32.3", pullPolicy: IfNotPresent }
 replicaCount: 1
 deployment: { revisionHistoryLimit: 2, terminationGracePeriodSeconds: 120, strategy: { type: Recreate } }
-serviceAccount: { create: true, name: "" }
+serviceAccount: { create: true, name: "", annotations: {} }
+vaultIntegration:
+  # Foundation only: no Vault component, authentication, secret retrieval, or pod mutation is enabled.
+  enabled: false
+  agentInjector: { enabled: false, podAnnotations: {} }
+  externalSecretsOperator: { enabled: false, secretStoreReference: "", externalSecretReference: "" }
+  secretsStoreCsi: { enabled: false, providerReference: "", secretProviderClassReference: "" }
+  authentication: { enabled: false, serviceAccountAnnotations: {}, roleReference: "" }
 persistence: { existingClaim: "", size: 100Gi, storageClass: "", accessModes: [ReadWriteOnce] }
 service: { type: ClusterIP, port: 11434 }
 resources: { requests: { cpu: "2", memory: 8Gi }, limits: { cpu: "4", memory: 16Gi } }

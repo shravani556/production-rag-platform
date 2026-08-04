@@ -1,0 +1,119 @@
+name: Reusable CD Artifacts
+
+on:
+  workflow_call:
+    inputs:
+      github_environment:
+        required: true
+        type: string
+      build_ollama:
+        required: false
+        type: boolean
+        default: false
+      push_images:
+        required: false
+        type: boolean
+        default: false
+      semantic_version:
+        required: false
+        type: string
+        default: 0.0.0-placeholder
+      artifact_retention_days:
+        required: false
+        type: number
+        default: 30
+    secrets:
+      CONTAINER_REGISTRY:
+        required: false
+      CONTAINER_REPOSITORY:
+        required: false
+      OLLAMA_CONTAINER_REPOSITORY:
+        required: false
+      REGISTRY_USERNAME:
+        required: false
+      REGISTRY_TOKEN:
+        required: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-package:
+    runs-on: ubuntu-24.04
+    environment: ${{ inputs.github_environment }}
+    concurrency:
+      group: cd-artifacts-${{ inputs.github_environment }}-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.16.3
+      - name: Validate registry configuration when push is enabled
+        if: inputs.push_images
+        env:
+          CONTAINER_REGISTRY: ${{ secrets.CONTAINER_REGISTRY }}
+          CONTAINER_REPOSITORY: ${{ secrets.CONTAINER_REPOSITORY }}
+          REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+          REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
+          BUILD_OLLAMA: ${{ inputs.build_ollama }}
+          OLLAMA_CONTAINER_REPOSITORY: ${{ secrets.OLLAMA_CONTAINER_REPOSITORY }}
+        run: |
+          set -euo pipefail
+          test -n "$CONTAINER_REGISTRY"
+          test -n "$CONTAINER_REPOSITORY"
+          test -n "$REGISTRY_USERNAME"
+          test -n "$REGISTRY_TOKEN"
+          if [ "$BUILD_OLLAMA" = "true" ]; then test -n "$OLLAMA_CONTAINER_REPOSITORY"; fi
+      - name: Log in to configured registry
+        if: inputs.push_images
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.CONTAINER_REGISTRY }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_TOKEN }}
+      - name: Build RAG application image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: ${{ inputs.push_images }}
+          tags: |
+            ${{ inputs.push_images && format('{0}/{1}:{2}', secrets.CONTAINER_REGISTRY, secrets.CONTAINER_REPOSITORY, github.sha) || format('local/{0}:{1}', github.event.repository.name, github.sha) }}
+            ${{ inputs.push_images && format('{0}/{1}:{2}', secrets.CONTAINER_REGISTRY, secrets.CONTAINER_REPOSITORY, inputs.semantic_version) || '' }}
+          cache-from: type=gha,scope=cd-rag-platform
+          cache-to: type=gha,mode=max,scope=cd-rag-platform
+      - name: Build Ollama image
+        if: inputs.build_ollama
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infrastructure/docker/ollama.Dockerfile
+          push: ${{ inputs.push_images }}
+          tags: |
+            ${{ inputs.push_images && format('{0}/{1}:{2}', secrets.CONTAINER_REGISTRY, secrets.OLLAMA_CONTAINER_REPOSITORY, github.sha) || format('local/{0}-ollama:{1}', github.event.repository.name, github.sha) }}
+            ${{ inputs.push_images && format('{0}/{1}:{2}', secrets.CONTAINER_REGISTRY, secrets.OLLAMA_CONTAINER_REPOSITORY, inputs.semantic_version) || '' }}
+          cache-from: type=gha,scope=cd-ollama
+          cache-to: type=gha,mode=max,scope=cd-ollama
+      - name: Validate and package Helm charts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release-artifacts/charts release-artifacts/rendered
+          helm lint infrastructure/helm/rag-platform -f infrastructure/helm/rag-platform/values-dev.yaml
+          helm lint infrastructure/helm/rag-platform -f infrastructure/helm/rag-platform/values-prod.yaml
+          helm lint infrastructure/helm/ollama -f infrastructure/helm/ollama/values-dev.yaml
+          helm lint infrastructure/helm/ollama -f infrastructure/helm/ollama/values-prod.yaml
+          helm template rag-platform infrastructure/helm/rag-platform -f infrastructure/helm/rag-platform/values-dev.yaml > release-artifacts/rendered/rag-platform-dev.yaml
+          helm template rag-platform infrastructure/helm/rag-platform -f infrastructure/helm/rag-platform/values-prod.yaml > release-artifacts/rendered/rag-platform-prod.yaml
+          helm template ollama infrastructure/helm/ollama -f infrastructure/helm/ollama/values-dev.yaml > release-artifacts/rendered/ollama-dev.yaml
+          helm template ollama infrastructure/helm/ollama -f infrastructure/helm/ollama/values-prod.yaml > release-artifacts/rendered/ollama-prod.yaml
+          helm package infrastructure/helm/rag-platform --destination release-artifacts/charts
+          helm package infrastructure/helm/ollama --destination release-artifacts/charts
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts-${{ github.sha }}
+          path: release-artifacts/
+          retention-days: ${{ inputs.artifact_retention_days }}

@@ -1,0 +1,56 @@
+name: Deploy Production (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      semantic_version:
+        description: Semantic version placeholder for image tags.
+        required: true
+        type: string
+      build_ollama:
+        description: Build the optional Ollama image.
+        required: true
+        default: false
+        type: boolean
+      push_images:
+        description: Push images to the configured registry. Disabled by default.
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  artifacts:
+    uses: ./.github/workflows/cd-artifacts.yml
+    with:
+      github_environment: production
+      semantic_version: ${{ inputs.semantic_version }}
+      build_ollama: ${{ inputs.build_ollama }}
+      push_images: ${{ inputs.push_images }}
+      artifact_retention_days: 90
+    secrets: inherit
+  smoke-test-placeholder:
+    needs: artifacts
+    runs-on: ubuntu-24.04
+    environment: production
+    steps:
+      - run: echo 'No cluster connection or deployment is performed in Phase 7.'
+  summary:
+    needs: smoke-test-placeholder
+    runs-on: ubuntu-24.04
+    environment: production
+    steps:
+      - run: |
+          echo '## Production CD preparation complete' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Image tag: `${{ github.sha }}`' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Semantic version placeholder: `${{ inputs.semantic_version }}`' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Registry push enabled: `${{ inputs.push_images }}`' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Production approval is enforced by GitHub Environment protection rules.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Kubernetes deployment: intentionally not executed' >> "$GITHUB_STEP_SUMMARY"

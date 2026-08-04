@@ -1,0 +1,37 @@
+name: Rollback Preparation (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_reference:
+        description: Previously approved immutable Git SHA or semantic release tag.
+        required: true
+        type: string
+      target_environment:
+        description: Environment for the future rollback operation.
+        required: true
+        type: choice
+        options: [development, production]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rollback-${{ inputs.target_environment }}
+  cancel-in-progress: false
+
+jobs:
+  prepare-rollback:
+    runs-on: ubuntu-24.04
+    environment: ${{ inputs.target_environment }}
+    steps:
+      - name: Validate rollback reference
+        env:
+          RELEASE_REFERENCE: ${{ inputs.release_reference }}
+        run: test -n "$RELEASE_REFERENCE"
+      - name: Write rollback summary
+        run: |
+          echo '## Rollback preparation only' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Target environment: `${{ inputs.target_environment }}`' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Requested release reference: `${{ inputs.release_reference }}`' >> "$GITHUB_STEP_SUMMARY"
+          echo '- No registry pull, Helm operation, kubectl command, or cluster connection was executed.' >> "$GITHUB_STEP_SUMMARY"

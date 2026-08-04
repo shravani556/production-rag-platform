@@ -1,1 +1,2 @@
-# Intentionally empty until monitoring infrastructure is explicitly approved.
+# This module intentionally declares no providers or resources. It records
+# provider-neutral observability intent only.
