@@ -9,3 +9,4 @@ network_cidr = "10.10.0.0/16"
 # security_configuration has provider-neutral defaults in variables.tf.
 # kubernetes_bootstrap_configuration is inert and has defaults in variables.tf.
 # vault_configuration contains reference-only defaults in variables.tf.
+# observability_configuration contains disabled, reference-only defaults in variables.tf.

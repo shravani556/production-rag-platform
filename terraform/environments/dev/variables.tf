@@ -225,3 +225,29 @@ variable "vault_configuration" {
     future_secrets_store_csi   = { enabled = false, integration_reference = "secrets-store-csi://deferred" }
   }
 }
+
+variable "observability_configuration" {
+  description = "Provider-neutral development observability intent. All services are disabled and all references are non-sensitive."
+  type        = any
+  default = {
+    namespace = { enabled = false, name = "observability", create = false }
+    components = {
+      prometheus = { enabled = false, integration_reference = "monitoring-stack://prometheus/deferred" }
+      kube_state_metrics = { enabled = false, integration_reference = "monitoring-stack://kube-state-metrics/deferred" }
+      node_exporter = { enabled = false, integration_reference = "monitoring-stack://node-exporter/deferred" }
+      cadvisor = { enabled = false, integration_reference = "monitoring-stack://cadvisor/deferred" }
+      metrics_server = { enabled = false, integration_reference = "monitoring-stack://metrics-server/deferred" }
+      grafana = { enabled = false, integration_reference = "monitoring-stack://grafana/deferred" }
+      loki = { enabled = false, integration_reference = "monitoring-stack://loki/deferred" }
+      promtail = { enabled = false, integration_reference = "monitoring-stack://promtail/deferred" }
+      alertmanager = { enabled = false, integration_reference = "monitoring-stack://alertmanager/deferred" }
+      opentelemetry_collector = { enabled = false, integration_reference = "monitoring-stack://opentelemetry-collector/deferred" }
+      jaeger = { enabled = false, integration_reference = "monitoring-stack://jaeger/deferred" }
+      tempo = { enabled = false, integration_reference = "monitoring-stack://tempo/deferred" }
+    }
+    retention = { metrics_days = 14, logs_days = 14, traces_days = 7 }
+    storage = { enabled = false, policy_reference = "storage-policy://rag-platform/dev/observability", backup_reference = "backup-policy://rag-platform/dev/observability" }
+    dashboards = { enabled = false, catalog_reference = "dashboard-catalog://rag-platform/dev" }
+    alert_routing = { enabled = false, routing_reference = "alert-routing://rag-platform/dev", escalation_reference = "runbook://rag-platform/dev/alerts" }
+  }
+}

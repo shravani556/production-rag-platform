@@ -27,3 +27,8 @@ output "vault_contract" {
   description = "The requested provider-neutral development Vault contract; no Vault instance, provider, or secret is created."
   value       = module.vault.vault_contract
 }
+
+output "observability_contract" {
+  description = "The requested provider-neutral development observability contract; no observability service or infrastructure is created."
+  value       = module.monitoring.observability_contract
+}

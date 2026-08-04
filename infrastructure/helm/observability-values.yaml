@@ -1,0 +1,18 @@
+# Reference-only Phase 9 observability values. This is not a Helm chart and
+# cannot install any component. All future integrations remain disabled.
+namespace: { enabled: false, name: observability, create: false }
+prometheus: { enabled: false, retentionDays: 0, storageReference: "", backupReference: "" }
+kubeStateMetrics: { enabled: false }
+nodeExporter: { enabled: false }
+cAdvisor: { enabled: false }
+metricsServer: { enabled: false }
+grafana: { enabled: false, dashboardCatalogReference: "", datasourceReferences: [] }
+loki: { enabled: false, retentionDays: 0, storageReference: "", backupReference: "" }
+promtail: { enabled: false, lokiEndpointReference: "" }
+alertmanager: { enabled: false, routingReference: "", escalationReference: "" }
+openTelemetryCollector: { enabled: false, endpointReference: "" }
+jaeger: { enabled: false, storageReference: "" }
+tempo: { enabled: false, storageReference: "", retentionDays: 0 }
+applicationMetrics:
+  enabled: false
+  categories: [http-requests, request-duration, error-rate, token-usage, prompt-count, embedding-duration, retrieval-latency, llm-latency, chunk-retrieval, vector-database, ollama-inference]

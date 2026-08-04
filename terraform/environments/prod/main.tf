@@ -44,6 +44,8 @@ module "storage" {
 
 module "monitoring" {
   source = "../../modules/monitoring"
+
+  observability_configuration = var.observability_configuration
 }
 
 module "security" {
