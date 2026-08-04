@@ -1,2 +1,4 @@
 project_name = "replace-with-project-name"
 environment  = "dev"
+network_name = "rag-platform-dev-network"
+network_cidr = "10.10.0.0/16"

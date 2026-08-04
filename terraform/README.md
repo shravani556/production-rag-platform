@@ -1,9 +1,8 @@
 # Terraform foundation
 
 This directory is the provider-neutral foundation for the RAG platform
-infrastructure. It deliberately contains no provider configuration, resources,
-cloud integrations, VM definitions, networking, Kubernetes installation, or
-deployment automation.
+infrastructure. Phase 6B defines a reusable networking contract, but still
+contains no provider configuration or managed infrastructure resources.
 
 ## Layout
 
@@ -24,19 +23,22 @@ terraform/
 
 ## Module responsibilities
 
-`common` is the only implemented foundation module. It standardizes project,
-environment, name-prefix, and tag metadata without creating infrastructure.
-The remaining modules are intentionally empty contracts for future phases.
-Both environment roots consume the same module set so provider-specific work can
-be added once and reused without duplicating environment code.
+`common` standardizes project, environment, name-prefix, and tag metadata.
+`networking` records CIDR, DNS, and future subnet/load-balancer/NAT/ingress/VPN/
+private-networking/storage-endpoint intent without creating infrastructure. The
+remaining modules are intentionally empty contracts for future phases. Both
+environment roots consume the same module set so provider-specific work can be
+added once and reused without duplicating environment code.
 
 ## Environment strategy
 
 `dev` and `prod` are isolated Terraform root modules. Each starts with a local
-backend state file in its own directory. This is appropriate only for the
-foundation and local validation. Before collaborative or production use, Phase
-6B must replace the local backend with an approved remote backend that provides
-locking, encryption, access control, and backup.
+backend state file in its own directory. Dev reserves `10.10.0.0/16`; Prod
+reserves `10.20.0.0/16`. These are placeholders, not provisioned networks. The
+CIDRs must be checked for overlap before any provider-specific resources are
+introduced. The local backend is appropriate only for foundation validation;
+before collaborative or production use it must be replaced with an approved
+remote backend that provides locking, encryption, access control, and backup.
 
 ## Execution order
 
@@ -47,5 +49,5 @@ locking, encryption, access control, and backup.
 5. Future phases may introduce provider configuration and resources only after
    architecture approval. Do not apply this foundation as infrastructure code.
 
-Because this foundation has no managed resources, a plan using the example
-values will have no resources to create, change, or destroy.
+Because Phase 6B has no managed resources, a plan using the example values will
+have no resources to create, change, or destroy.
