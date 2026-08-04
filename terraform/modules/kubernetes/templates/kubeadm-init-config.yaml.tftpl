@@ -1,0 +1,20 @@
+# Runtime-only kubeadm configuration template. Do not commit rendered output.
+apiVersion: kubeadm.k8s.io/v1beta4
+kind: InitConfiguration
+localAPIEndpoint:
+  advertiseAddress: ${advertise_address}
+  bindPort: 6443
+certificateKey: ${certificate_key}
+nodeRegistration:
+  criSocket: ${cri_socket}
+---
+apiVersion: kubeadm.k8s.io/v1beta4
+kind: ClusterConfiguration
+kubernetesVersion: ${kubernetes_version}
+controlPlaneEndpoint: ${control_plane_endpoint}
+networking:
+  podSubnet: ${pod_cidr}
+  serviceSubnet: ${service_cidr}
+  dnsDomain: ${cluster_dns_domain}
+apiServer:
+  certSANs: ${api_server_cert_sans}

@@ -1,0 +1,31 @@
+#cloud-config
+# Template only: it writes bootstrap configuration and does not run kubeadm.
+hostname: ${hostname}
+manage_etc_hosts: true
+package_update: true
+package_upgrade: false
+timezone: ${timezone}
+write_files:
+  - path: /etc/rag-platform/bootstrap.env
+    owner: root:root
+    permissions: '0600'
+    content: |
+      NODE_ROLE=control-plane
+      NODE_HOSTNAME=${hostname}
+      KUBERNETES_VERSION=${kubernetes_version}
+      KUBERNETES_PACKAGE_VERSION=${kubernetes_package_version}
+      CONTAINERD_VERSION=${containerd_version}
+      KUBERNETES_REPOSITORY_URL=${kubernetes_repository_url}
+      KUBERNETES_REPOSITORY_KEY_URL=${kubernetes_repository_key_url}
+      SANDBOX_IMAGE=${sandbox_image}
+      REGISTRY_MIRRORS=${registry_mirrors}
+      CONTROL_PLANE_ENDPOINT_REFERENCE=${control_plane_endpoint_reference}
+      CNI_REFERENCE=${cni_reference}
+      TOKEN_MANAGEMENT_REFERENCE=${token_management_reference}
+      CERTIFICATE_MANAGEMENT_REFERENCE=${certificate_management_reference}
+      SSH_HARDENING_ENABLED=false
+      AUDITD_ENABLED=false
+      FAIL2BAN_ENABLED=false
+      FIREWALL_ENABLED=false
+# An approved executor copies the versioned scripts, validates the node, then
+# invokes kubeadm-init.sh with an ephemeral runtime config in a later phase.

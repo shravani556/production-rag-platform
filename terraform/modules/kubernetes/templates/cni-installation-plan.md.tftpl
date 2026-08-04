@@ -1,0 +1,11 @@
+# CNI installation plan (reference only)
+
+Selected provider: `${cni_provider}`
+
+Approved manifest or chart reference: `${cni_manifest_reference}`
+
+Permitted values are `cilium`, `calico`, and `flannel`. This plan is not an
+installer and does not download, apply, or render a CNI manifest. Before a later
+approved installation, confirm compatibility with `${kubernetes_version}`, pod
+CIDR `${pod_cidr}`, network policy requirements, MTU, egress policy, and the
+control-plane endpoint `${control_plane_endpoint}`.
