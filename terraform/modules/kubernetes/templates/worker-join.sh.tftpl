@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Template only. The executor obtains a short-lived join command at runtime.
+set -euo pipefail
+
+# Retrieve join material from ${token_management_reference}; validate the CA hash
+# against certificates managed through ${certificate_management_reference}.
+# Example runtime command shape (do not commit a real token):
+# kubeadm join ${control_plane_endpoint}:6443 --token <short-lived-token> --discovery-token-ca-cert-hash sha256:<hash>

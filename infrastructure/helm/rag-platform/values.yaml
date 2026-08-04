@@ -14,6 +14,13 @@ deployment:
 commonLabels: {}
 commonAnnotations: {}
 serviceAccount: { create: true, name: "", annotations: {}, automount: false }
+vaultIntegration:
+  # Foundation only: no Vault component, authentication, secret retrieval, or pod mutation is enabled.
+  enabled: false
+  agentInjector: { enabled: false, podAnnotations: {} }
+  externalSecretsOperator: { enabled: false, secretStoreReference: "", externalSecretReference: "" }
+  secretsStoreCsi: { enabled: false, providerReference: "", secretProviderClassReference: "" }
+  authentication: { enabled: false, serviceAccountAnnotations: {}, roleReference: "" }
 rbac: { create: true }
 config:
   chromaPath: /app/data/chroma_db

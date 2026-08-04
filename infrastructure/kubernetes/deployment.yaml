@@ -29,6 +29,11 @@ spec:
         app.kubernetes.io/instance: rag-platform
         app.kubernetes.io/component: frontend
         app.kubernetes.io/part-of: production-rag-platform
+      # Future Vault/CSI annotations only. They are disabled and do not mutate this pod.
+      annotations:
+        vault.hashicorp.com/agent-inject: "false"
+        rag-platform.io/vault-authentication: "disabled"
+        rag-platform.io/secrets-store-csi: "disabled"
     spec:
       serviceAccountName: rag-app
       automountServiceAccountToken: false

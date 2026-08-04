@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Template only. A future approved executor may render and run this on a node.
+set -euo pipefail
+
+# Install containerd from the approved repository at ${containerd_version_reference}.
+# Generate a systemd cgroup configuration and enable the service.
+# Do not add credentials or registry secrets to this template.
+containerd config default | sed 's/SystemdCgroup = false/SystemdCgroup = true/' > /etc/containerd/config.toml
+systemctl enable --now containerd

@@ -19,6 +19,12 @@ spec:
     metadata:
       labels:
 {{ include "rag-platform.labels" . | nindent 8 }}
+{{- if and .Values.vaultIntegration.enabled .Values.vaultIntegration.agentInjector.enabled }}
+{{- with .Values.vaultIntegration.agentInjector.podAnnotations }}
+      annotations:
+{{ toYaml . | nindent 8 }}
+{{- end }}
+{{- end }}
     spec:
       serviceAccountName: {{ include "rag-platform.serviceAccountName" . }}
       automountServiceAccountToken: {{ .Values.serviceAccount.automount }}

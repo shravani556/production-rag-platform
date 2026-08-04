@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Template only. Resolve token/certificate material at runtime, never in Terraform.
+set -euo pipefail
+
+# The approved executor retrieves certificates from ${certificate_management_reference}.
+# Bootstrap token lifecycle is managed by ${token_management_reference}.
+kubeadm init \
+  --kubernetes-version "${kubernetes_version}" \
+  --control-plane-endpoint "${control_plane_endpoint}" \
+  --pod-network-cidr "${pod_cidr}" \
+  --service-cidr "${service_cidr}" \
+  --service-dns-domain "${cluster_dns_domain}"
+
+# Install CNI from ${cni_reference} only after kubeadm initialization succeeds.

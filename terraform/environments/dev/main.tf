@@ -23,14 +23,23 @@ module "networking" {
 
 module "compute" {
   source = "../../modules/compute"
+
+  environment        = var.environment
+  nodes              = var.compute_nodes
+  future_autoscaling = var.future_compute_autoscaling
 }
 
 module "kubernetes" {
   source = "../../modules/kubernetes"
+
+  bootstrap_configuration = var.kubernetes_bootstrap_configuration
 }
 
 module "storage" {
   source = "../../modules/storage"
+
+  environment         = var.environment
+  storage_definitions = var.storage_definitions
 }
 
 module "monitoring" {
@@ -39,4 +48,13 @@ module "monitoring" {
 
 module "security" {
   source = "../../modules/security"
+
+  environment            = var.environment
+  security_configuration = var.security_configuration
+}
+
+module "vault" {
+  source = "../../modules/vault"
+
+  vault_configuration = var.vault_configuration
 }
