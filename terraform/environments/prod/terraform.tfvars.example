@@ -1,0 +1,4 @@
+project_name = "replace-with-project-name"
+environment  = "prod"
+network_name = "rag-platform-prod-network"
+network_cidr = "10.20.0.0/16"

@@ -1,0 +1,19 @@
+# Replace the StorageClass before applying. Size must accommodate all pulled models.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ollama-models
+  namespace: rag-platform
+  labels:
+    app.kubernetes.io/name: ollama
+    app.kubernetes.io/instance: rag-platform
+    app.kubernetes.io/component: inference
+    app.kubernetes.io/part-of: production-rag-platform
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  storageClassName: replace-with-storage-class
+  resources:
+    requests:
+      storage: 100Gi

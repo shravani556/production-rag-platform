@@ -1,0 +1,28 @@
+# Replace ingressClassName, host, and TLS secret before applying.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rag-app
+  namespace: rag-platform
+  labels:
+    app.kubernetes.io/name: rag-app
+    app.kubernetes.io/instance: rag-platform
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: production-rag-platform
+spec:
+  ingressClassName: replace-with-ingress-class
+  tls:
+    - hosts:
+        - rag.example.invalid
+      secretName: rag-app-tls
+  rules:
+    - host: rag.example.invalid
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: rag-app
+                port:
+                  name: http

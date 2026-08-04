@@ -1,0 +1,2 @@
+# Ollama Chart
+Installs independent Ollama inference and persistent model storage. Required: tested image, PVC storage class, and preloaded models. Example: `helm upgrade --install ollama ./infrastructure/helm/ollama -n rag-platform -f values-prod.yaml`. The default full name is deliberately `ollama`, preserving the Phase 3 service DNS contract used by the RAG chart (`ollama.rag-platform.svc.cluster.local`). The RAG chart reaches this service through its `config.ollamaHost` value.

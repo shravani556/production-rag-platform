@@ -1,0 +1,3 @@
+image: { tag: replace-with-immutable-image-tag }
+ingress: { enabled: true, className: replace-with-ingress-class, hosts: [{ host: rag.example.invalid, paths: [{ path: /, pathType: Prefix }] }], tls: [{ secretName: replace-with-tls-secret, hosts: [rag.example.invalid] }] }
+hpa: { enabled: false }

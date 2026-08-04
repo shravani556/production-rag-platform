@@ -1,0 +1,1 @@
+Ollama is internal-only. Its endpoint is {{ include "ollama.fullname" . }}:{{ .Values.service.port }}.

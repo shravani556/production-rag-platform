@@ -1,0 +1,3 @@
+image: { tag: stage }
+ingress: { enabled: true, className: replace-with-ingress-class, hosts: [{ host: rag-stage.example.invalid, paths: [{ path: /, pathType: Prefix }] }], tls: [{ secretName: rag-stage-tls, hosts: [rag-stage.example.invalid] }] }
+hpa: { enabled: false }

@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "rag-platform.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "rag-platform.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: {{ .Values.deployment.revisionHistoryLimit }}
+  progressDeadlineSeconds: {{ .Values.deployment.progressDeadlineSeconds }}
+  minReadySeconds: {{ .Values.deployment.minReadySeconds }}
+  strategy:
+{{ toYaml .Values.deployment.strategy | nindent 4 }}
+  selector:
+    matchLabels:
+{{ include "rag-platform.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+{{ include "rag-platform.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "rag-platform.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automount }}
+      enableServiceLinks: false
+      hostNetwork: false
+      hostPID: false
+      hostIPC: false
+      terminationGracePeriodSeconds: {{ .Values.deployment.terminationGracePeriodSeconds }}
+      securityContext:
+{{ toYaml .Values.podSecurityContext | nindent 8 }}
+      affinity:
+{{ toYaml .Values.affinity | nindent 8 }}
+{{- if .Values.topologySpread.enabled }}
+      topologySpreadConstraints:
+        - maxSkew: {{ .Values.topologySpread.maxSkew }}
+          topologyKey: {{ .Values.topologySpread.topologyKey }}
+          whenUnsatisfiable: {{ .Values.topologySpread.whenUnsatisfiable }}
+          labelSelector:
+            matchLabels:
+{{ include "rag-platform.selectorLabels" . | nindent 14 }}
+{{- end }}
+      containers:
+        - name: rag-app
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8501
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "rag-platform.fullname" . }}-config
+            - secretRef:
+                name: {{ .Values.secret.name }}
+                optional: {{ .Values.secret.optional }}
+          resources:
+{{ toYaml .Values.resources | nindent 12 }}
+          securityContext:
+{{ toYaml .Values.securityContext | nindent 12 }}
+          volumeMounts:
+            - name: chroma-data
+              mountPath: {{ .Values.config.chromaPath }}
+            - name: temporary-data
+              mountPath: /tmp
+          startupProbe:
+{{ include "rag-platform.httpProbe" (dict "probe" .Values.probes.startup) | nindent 12 }}
+          readinessProbe:
+{{ include "rag-platform.httpProbe" (dict "probe" .Values.probes.readiness) | nindent 12 }}
+          livenessProbe:
+{{ include "rag-platform.httpProbe" (dict "probe" .Values.probes.liveness) | nindent 12 }}
+      volumes:
+        - name: chroma-data
+          persistentVolumeClaim:
+            claimName: {{ default (printf "%s-chroma" (include "rag-platform.fullname" .)) .Values.persistence.existingClaim }}
+        - name: temporary-data
+          emptyDir:
+            sizeLimit: {{ .Values.temporaryStorage.sizeLimit }}

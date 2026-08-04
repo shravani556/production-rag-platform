@@ -1,0 +1,2 @@
+Access the RAG service with: kubectl get svc -n {{ .Release.Namespace }} {{ include "rag-platform.fullname" . }}.
+{{- if .Values.ingress.enabled }} Use the configured Ingress hostname after DNS and TLS are ready.{{- end }}

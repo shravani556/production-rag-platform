@@ -1,0 +1,50 @@
+name: Helm Validation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  helm:
+    name: Lint and render charts
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: v4.2.1
+
+      - name: Lint both charts and environment values
+        run: |
+          helm lint infrastructure/helm/rag-platform
+          helm lint infrastructure/helm/ollama
+          helm lint infrastructure/helm/rag-platform -f infrastructure/helm/rag-platform/values-dev.yaml
+          helm lint infrastructure/helm/rag-platform -f infrastructure/helm/rag-platform/values-stage.yaml
+          helm lint infrastructure/helm/rag-platform -f infrastructure/helm/rag-platform/values-prod.yaml
+          helm lint infrastructure/helm/ollama -f infrastructure/helm/ollama/values-dev.yaml
+          helm lint infrastructure/helm/ollama -f infrastructure/helm/ollama/values-stage.yaml
+          helm lint infrastructure/helm/ollama -f infrastructure/helm/ollama/values-prod.yaml
+
+      - name: Render both charts without connecting to a cluster
+        run: |
+          mkdir -p rendered-manifests
+          helm template rag-platform infrastructure/helm/rag-platform --namespace rag-platform -f infrastructure/helm/rag-platform/values-dev.yaml > rendered-manifests/rag-platform-dev.yaml
+          helm template rag-platform infrastructure/helm/rag-platform --namespace rag-platform -f infrastructure/helm/rag-platform/values-stage.yaml > rendered-manifests/rag-platform-stage.yaml
+          helm template rag-platform infrastructure/helm/rag-platform --namespace rag-platform -f infrastructure/helm/rag-platform/values-prod.yaml > rendered-manifests/rag-platform-prod.yaml
+          helm template ollama infrastructure/helm/ollama --namespace rag-platform -f infrastructure/helm/ollama/values-dev.yaml > rendered-manifests/ollama-dev.yaml
+          helm template ollama infrastructure/helm/ollama --namespace rag-platform -f infrastructure/helm/ollama/values-stage.yaml > rendered-manifests/ollama-stage.yaml
+          helm template ollama infrastructure/helm/ollama --namespace rag-platform -f infrastructure/helm/ollama/values-prod.yaml > rendered-manifests/ollama-prod.yaml
+
+      - name: Upload rendered manifests
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-helm-manifests
+          path: rendered-manifests/
+          retention-days: 7

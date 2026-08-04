@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    name: Python syntax and tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install application and test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt pytest pyyaml
+
+      - name: Validate Python syntax
+        run: python -m compileall -q app app.py ingest.py
+
+      - name: Validate non-templated YAML
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import yaml
+
+          roots = [Path('.github/workflows'), Path('infrastructure/kubernetes')]
+          files = [path for root in roots for path in root.rglob('*.y*ml')]
+          files += list(Path('infrastructure/helm').glob('*/Chart.yaml'))
+          files += list(Path('infrastructure/helm').glob('*/values*.yaml'))
+          for path in sorted(files):
+              list(yaml.safe_load_all(path.read_text(encoding='utf-8')))
+              print(f'Validated {path}')
+          PY
+
+      - name: Run unit tests
+        run: python -m pytest -q tests

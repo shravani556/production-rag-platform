@@ -1,0 +1,2 @@
+# RAG Platform Chart
+Installs the Streamlit RAG workload, Chroma PVC, service, RBAC, and optional Ingress/HPA/PDB. Required: image, storage class or existing claim, Ollama endpoint, and namespace. Example: `helm upgrade --install rag ./infrastructure/helm/rag-platform -n rag-platform -f values-prod.yaml`. Install Ollama separately first. Production requires immutable images, storage, ingress/TLS, and managed secrets.

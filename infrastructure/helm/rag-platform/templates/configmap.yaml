@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "rag-platform.fullname" . }}-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "rag-platform.labels" . | nindent 4 }}
+data:
+  RAG_CHROMA_PATH: {{ .Values.config.chromaPath | quote }}
+  RAG_DOCUMENTS_PATH: {{ .Values.config.documentsPath | quote }}
+  RAG_EVALUATION_FILE: {{ .Values.config.evaluationFile | quote }}
+  RAG_COLLECTION_NAME: {{ .Values.config.collectionName | quote }}
+  RAG_LLM_MODEL: {{ .Values.config.llmModel | quote }}
+  RAG_EMBEDDING_MODEL: {{ .Values.config.embeddingModel | quote }}
+  OLLAMA_HOST: {{ .Values.config.ollamaHost | quote }}
+  STREAMLIT_SERVER_ADDRESS: {{ .Values.config.streamlit.address | quote }}
+  STREAMLIT_SERVER_PORT: {{ .Values.config.streamlit.port | quote }}
+  STREAMLIT_SERVER_HEADLESS: {{ .Values.config.streamlit.headless | quote }}
+  HOME: /tmp
+  XDG_CACHE_HOME: /tmp/.cache
