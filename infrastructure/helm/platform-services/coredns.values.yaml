@@ -1,0 +1,12 @@
+# Optional, reference-only CoreDNS tuning contract; it is not a CoreDNS chart.
+enabled: false
+namespaceReference: "namespace://kube-system"
+replicaCount: 2
+resources:
+  requests: { cpu: 100m, memory: 128Mi }
+  limits: { cpu: 500m, memory: 256Mi }
+podDisruptionBudget: { enabled: true, minAvailable: 1 }
+autoscaling: { enabled: false, minReplicas: 2, maxReplicas: 10 }
+cache: { successSeconds: 30, denialSeconds: 5 }
+forward: { upstreamReferences: [] }
+nodeLocalDns: { enabled: false, configurationReference: "node-local-dns://deferred" }

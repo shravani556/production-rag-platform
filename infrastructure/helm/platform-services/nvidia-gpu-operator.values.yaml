@@ -1,0 +1,10 @@
+# Reference-only contract for a pinned NVIDIA GPU Operator chart.
+enabled: false
+chartReference: "nvidia-gpu-operator://approved-version-required"
+namespaceReference: "namespace://gpu-operator"
+operator: { upgradeCRD: false, cleanupCRD: false }
+driver: { enabled: false }
+toolkit: { enabled: false }
+devicePlugin: { enabled: false }
+nfd: { enabled: false }
+nodeFeatureDiscoveryReference: "node-feature-discovery://deferred"

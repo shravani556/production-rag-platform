@@ -1,0 +1,13 @@
+# Provider-neutral CSI Storage reference contract. It is not a CSI chart.
+enabled: false
+driverReference: "csi-driver://provider-selection-required"
+storageClasses:
+  - name: "replace-with-approved-storage-class"
+    provisionerReference: "csi-provisioner://provider-selection-required"
+    parameters: {}
+    allowVolumeExpansion: true
+    volumeBindingMode: WaitForFirstConsumer
+    reclaimPolicy: Retain
+dynamicProvisioning: { enabled: false }
+snapshots: { enabled: false, classReference: "" }
+backup: { enabled: false, policyReference: "" }

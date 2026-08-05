@@ -1,0 +1,6 @@
+# Documentation-only dashboard contract. The dashboard remains disabled.
+enabled: false
+namespaceReference: "namespace://kubernetes-dashboard"
+authenticationReference: "approved-oidc-or-proxy://required"
+rbacReference: "least-privilege-dashboard-role://required"
+networkPolicyReference: "network-policy://dashboard/restricted"

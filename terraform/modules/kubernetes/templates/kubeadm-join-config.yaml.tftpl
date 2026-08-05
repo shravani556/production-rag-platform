@@ -1,0 +1,15 @@
+# Runtime-only worker join template. Placeholders must be resolved by the approved
+# secret-management executor; never commit the rendered file.
+apiVersion: kubeadm.k8s.io/v1beta4
+kind: JoinConfiguration
+discovery:
+  bootstrapToken:
+    apiServerEndpoint: ${control_plane_endpoint}:6443
+    token: ${bootstrap_token}
+    caCertHashes:
+      - ${ca_cert_hash}
+# certificate_key: ${certificate_key}
+# This placeholder is retained for a future control-plane join/HA workflow;
+# a worker join does not consume a certificate key.
+nodeRegistration:
+  criSocket: ${cri_socket}

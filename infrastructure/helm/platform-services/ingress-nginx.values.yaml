@@ -1,0 +1,34 @@
+# Reference-only contract for a pinned ingress-nginx upstream chart.
+enabled: false
+chartReference: "ingress-nginx://approved-version-required"
+namespaceReference: "namespace://ingress-nginx"
+controller:
+  replicaCount: 2
+  resources:
+    requests: { cpu: 250m, memory: 256Mi }
+    limits: { cpu: "1", memory: 1Gi }
+  podDisruptionBudget: { enabled: true, minAvailable: 1 }
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector: { matchLabels: { app.kubernetes.io/component: controller } }
+          topologyKey: kubernetes.io/hostname
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector: { matchLabels: { app.kubernetes.io/component: controller } }
+  admissionWebhooks: { enabled: true }
+  metrics: { enabled: true, serviceMonitor: { enabled: false } }
+  service:
+    type: LoadBalancer
+    annotations: {}
+    loadBalancerClass: ""
+    loadBalancerIP: ""
+    externalTrafficPolicy: Local
+  config:
+    use-forwarded-headers: "false"
+    ssl-redirect: "true"
+tls:
+  enabled: true
+  certificateReference: "certificate-management://cert-manager/deferred"

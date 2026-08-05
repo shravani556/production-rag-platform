@@ -7,25 +7,27 @@ render and execute these assets in a controlled order.
 
 ## Bootstrap sequence
 
-1. Render the containerd and node-prerequisite templates on every approved node.
-2. Install pinned Kubernetes packages and enable kubelet through the approved
-   automation mechanism.
-3. Render and execute the control-plane template on the single control-plane
-   node; it initializes the cluster with the declared endpoint and CIDRs.
-4. Obtain a short-lived, externally managed join token and CA hash, then render
-   and execute the worker template on each worker node.
-5. Install the approved CNI, then enable DNS, Metrics Server, ingress, CSI,
-   LoadBalancer, and GPU integrations only in later approved phases.
-6. Run validation scripts manually or from controlled automation after cluster
-   bootstrap completes.
+1. Supply the role-specific cloud-init template during VM provisioning. It sets
+   hostname/time and writes only non-secret bootstrap references; it does not
+   run bootstrap scripts, `kubeadm`, or a join operation.
+2. An approved post-VM executor runs `prepare-node.sh` and
+   `install-containerd.sh` on every node, then runs `validate-node.sh`.
+3. Provide the approved repository and key URLs plus OS-specific package version
+   to `prepare-node.sh`; it installs and pins kubeadm, kubelet, and kubectl.
+4. In a separately approved Kubernetes-installation phase, run
+   `kubeadm-init.sh` only on the control plane with ephemeral runtime config.
+5. After CNI approval, run `kubeadm-join.sh` on each worker with short-lived
+   runtime join material, then use `validate-cluster.sh`.
+6. DNS, Metrics Server, ingress, CSI, LoadBalancer, GPU, Helm, and workloads
+   remain later-phase integrations.
 
 ## Certificate and token flow
 
 Token and certificate fields are references, never credentials. A future secret
 manager or Vault integration must issue short-lived worker join material,
 protect the control-plane certificate key, record its use, and revoke expired
-tokens. The templates expect their runtime executor to retrieve these values;
-they must not be rendered into Terraform state, source control, or logs.
+tokens. The scripts accept that material only at runtime; it must not be
+rendered into cloud-init, Terraform state, source control, or logs.
 
 ## Operations strategy
 
